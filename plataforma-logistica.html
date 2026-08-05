@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0B2A4A">
+<title>Plataforma Logística — Gestão Operacional</title>
+<style>
+:root{
+  --navy:#0B2A4A; --navy2:#12385f; --navy3:#1b4a78;
+  --accent:#00A9C7; --accent2:#0ea5c4;
+  --bg:#f4f6f9; --card:#ffffff; --line:#e3e8ef; --line2:#eef2f7;
+  --ink:#12222f; --muted:#64748b; --muted2:#94a3b8;
+  --green:#16a34a; --amber:#f59e0b; --red:#dc2626;
+  --green-bg:#e7f6ec; --amber-bg:#fef3e0; --red-bg:#fdeaea;
+  --radius:14px; --shadow:0 1px 2px rgba(16,34,47,.06),0 4px 16px rgba(16,34,47,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg); color:var(--ink); font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:14px}
+a{color:inherit;text-decoration:none}
+.hidden{display:none!important}
+
+/* ---------- Layout ---------- */
+#app{display:flex;min-height:100vh}
+.sidebar{
+  width:250px;background:var(--navy);color:#cdd8e6;flex-shrink:0;
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:40;
+  transition:transform .22s ease;
+}
+.brand{display:flex;align-items:center;gap:10px;padding:18px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand .logo{width:40px;height:40px;border-radius:9px;background:linear-gradient(135deg,var(--accent),#0067a3);
+  display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:16px;flex-shrink:0;letter-spacing:-1px}
+.brand b{color:#fff;font-size:15px;line-height:1.15;display:block}
+.brand span{font-size:10.5px;color:var(--accent);letter-spacing:1.5px;font-weight:700}
+.nav{flex:1;overflow-y:auto;padding:10px 10px 20px}
+.nav .group{font-size:10.5px;letter-spacing:1.2px;color:#5f7897;text-transform:uppercase;padding:14px 12px 6px;font-weight:700}
+.nav a{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:9px;font-size:13.5px;color:#b9c7d9;margin-bottom:1px}
+.nav a .ic{width:20px;text-align:center;font-size:15px;opacity:.9}
+.nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav a.active{background:linear-gradient(90deg,rgba(0,169,199,.22),rgba(0,169,199,.05));color:#fff;box-shadow:inset 3px 0 0 var(--accent)}
+
+.main{flex:1;margin-left:250px;min-width:0;display:flex;flex-direction:column}
+.topbar{height:60px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;
+  gap:14px;padding:0 22px;position:sticky;top:0;z-index:30}
+.topbar .menu-btn{display:none;background:none;border:none;font-size:22px;color:var(--navy)}
+.topbar h1{font-size:16px;margin:0;font-weight:700;color:var(--navy)}
+.topbar .sub{font-size:12px;color:var(--muted);margin-left:2px}
+.topbar .spacer{flex:1}
+.role-select{border:1px solid var(--line);border-radius:9px;padding:7px 10px;background:#fff;color:var(--ink);font-weight:600}
+.userchip{display:flex;align-items:center;gap:9px;padding:5px 6px 5px 10px;border:1px solid var(--line);border-radius:30px}
+.userchip .av{width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+.userchip small{display:block;color:var(--muted);font-size:11px;line-height:1}
+.content{padding:24px 26px 60px;max-width:1320px;width:100%}
+
+/* ---------- Reusable ---------- */
+.pagehead{display:flex;align-items:flex-end;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.pagehead .t h2{margin:0;font-size:21px;color:var(--navy)}
+.pagehead .t p{margin:3px 0 0;color:var(--muted);font-size:13px}
+.pagehead .spacer{flex:1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-pad{padding:18px 20px}
+.card h3.sec{margin:0 0 2px;font-size:15px;color:var(--navy)}
+.card .seclabel{font-size:11.5px;color:var(--muted);margin:0 0 14px}
+.grid{display:grid;gap:16px}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 14px;border-radius:9px;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:7px}
+.btn:hover{border-color:var(--navy3)}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+.btn.primary:hover{background:var(--navy2)}
+.btn.accent{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.sm{padding:6px 10px;font-size:12px;border-radius:8px}
+.btn.danger{color:var(--red);border-color:#f3c9c9}
+.btn.danger:hover{background:var(--red-bg)}
+.iconbtn{border:none;background:none;color:var(--muted);font-size:15px;padding:5px 7px;border-radius:7px}
+.iconbtn:hover{background:var(--line2);color:var(--navy)}
+
+/* Stat cards */
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.stat .lbl{font-size:12px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:8px}
+.stat .val{font-size:30px;font-weight:800;color:var(--navy);margin-top:8px;letter-spacing:-1px}
+.stat .foot{font-size:11.5px;color:var(--muted2);margin-top:4px}
+.stat .ic{position:absolute;right:14px;top:14px;width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--line2)}
+.stat.warn .val{color:var(--amber)} .stat.alert .val{color:var(--red)}
+
+/* Table */
+.tablewrap{overflow-x:auto;border-radius:var(--radius)}
+table.data{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+table.data th{background:var(--navy);color:#dfe9f3;text-align:left;padding:11px 13px;font-weight:600;font-size:12px;white-space:nowrap;letter-spacing:.2px}
+table.data th:first-child{border-top-left-radius:var(--radius)}
+table.data th:last-child{border-top-right-radius:var(--radius)}
+table.data td{padding:11px 13px;border-bottom:1px solid var(--line2);vertical-align:middle}
+table.data tr:hover td{background:#fafcff}
+table.data tr:last-child td{border-bottom:none}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:30px;font-size:11.5px;font-weight:700}
+.tag.g{background:var(--green-bg);color:var(--green)} .tag.a{background:var(--amber-bg);color:#b45309}
+.tag.r{background:var(--red-bg);color:var(--red)} .tag.n{background:#eef2f7;color:var(--muted)}
+.tag.b{background:#e6f2fb;color:#0369a1}
+.prio-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+
+/* Filters */
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.filters input,.filters select{border:1px solid var(--line);border-radius:9px;padding:8px 11px;background:#fff;min-width:150px}
+.filters input:focus,.filters select:focus{outline:none;border-color:var(--accent)}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(11,42,74,.42);z-index:80;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:560px;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:pop .16s ease}
+@keyframes pop{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+.modal header{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center}
+.modal header h3{margin:0;font-size:16px;color:var(--navy)}
+.modal header .x{margin-left:auto;background:none;border:none;font-size:20px;color:var(--muted)}
+.modal .body{padding:20px 22px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.modal .body .full{grid-column:1/-1}
+.modal footer{padding:16px 22px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,169,199,.12)}
+.field textarea{resize:vertical;min-height:64px}
+
+/* Org chart */
+.org{display:flex;flex-direction:column;align-items:center;gap:0;padding:8px 0}
+.org .lvl{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;position:relative;padding:14px 0}
+.org .lvl:not(:last-child):after{content:"";width:2px;height:14px;background:var(--line);position:absolute;bottom:-1px;left:50%}
+.orgnode{background:#fff;border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:11px;padding:11px 15px;min-width:180px;box-shadow:var(--shadow);text-align:center}
+.orgnode .cargo{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);font-weight:700}
+.orgnode .nome{font-weight:700;color:var(--navy);margin-top:2px}
+.orgnode .meta{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* KPI cards */
+.kpigrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
+.kpi .name{font-weight:700;color:var(--navy);font-size:13.5px}
+.kpi .nums{display:flex;align-items:baseline;gap:8px;margin:10px 0 4px}
+.kpi .nums b{font-size:26px;letter-spacing:-1px}
+.kpi .nums small{color:var(--muted);font-size:12px}
+.kpi .bar{height:8px;border-radius:6px;background:var(--line2);overflow:hidden;margin-top:8px}
+.kpi .bar i{display:block;height:100%;border-radius:6px}
+.kpi .foot{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:7px}
+
+/* Gantt */
+.gantt{overflow-x:auto}
+.gantt table{border-collapse:collapse;width:100%;min-width:760px}
+.gantt th,.gantt td{border-bottom:1px solid var(--line2);padding:8px 10px;font-size:12.5px}
+.gantt th{background:var(--navy);color:#dfe9f3;font-weight:600;font-size:11.5px;text-align:center}
+.gantt th.left,.gantt td.left{text-align:left}
+.gantt .track{position:relative;height:22px}
+.gantt .barx{position:absolute;height:16px;top:3px;border-radius:5px;background:linear-gradient(90deg,var(--navy3),var(--accent));display:flex;align-items:center;padding-left:7px;color:#fff;font-size:10.5px;font-weight:700;box-shadow:var(--shadow)}
+.gantt .barx.done{background:linear-gradient(90deg,#15803d,var(--green))}
+.gantt .barx.late{background:linear-gradient(90deg,#b91c1c,var(--red))}
+
+/* charts */
+.chartcard{padding:18px 20px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+/* Visão geral */
+.vg-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+.infoline{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line2)}
+.infoline:last-child{border:none}
+.infoline .k{width:130px;flex-shrink:0;font-weight:700;color:var(--muted);font-size:12px;padding-top:1px}
+.infoline .v{flex:1}
+.flow{display:flex;gap:0;margin-top:14px;flex-wrap:wrap}
+.flow .step{background:var(--navy2);color:#cfe0f0;padding:10px 16px 10px 22px;font-size:12px;font-weight:600;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%,12px 50%);margin-right:-10px}
+.flow .step:first-child{clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%);padding-left:16px}
+.flow .step.active{background:var(--accent);color:#fff}
+.progresswrap{background:var(--line2);border-radius:30px;height:14px;overflow:hidden;margin-top:8px}
+.progresswrap i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#0067a3);border-radius:30px}
+
+.badge-lvl{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--navy);color:#fff}
+.help{font-size:12px;color:var(--muted);background:#f0f6fb;border:1px solid #d9e8f4;border-radius:10px;padding:10px 13px;margin-top:14px}
+.empty{text-align:center;color:var(--muted);padding:34px}
+
+@media(max-width:960px){
+  .vg-grid{grid-template-columns:1fr}
+}
+@media(max-width:860px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:none}
+  .main{margin-left:0}
+  .topbar .menu-btn{display:block}
+  .content{padding:18px 14px 60px}
+  .modal .body{grid-template-columns:1fr}
+  .userchip small{display:none}
+  .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:35}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo">22</div>
+      <div><b>Plataforma Logística</b><span>GESTÃO OPERACIONAL</span></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div><h1 id="pgTitle">Dashboard</h1></div>
+      <div class="spacer"></div>
+      <select class="role-select" id="roleSel" onchange="changeRole(this.value)" title="Nível de acesso"></select>
+      <div class="userchip"><div class="av" id="avatar">AD</div><div><b id="uName" style="font-size:13px">Admin</b><small id="uRole">Administrador</small></div></div>
+    </div>
+    <div class="content" id="view"></div>
+  </div>
+</div>
+<div id="modalRoot"></div>
+
+<script>
+/* ============================================================
+   PLATAFORMA LOGÍSTICA — FASE 1
+   Sistema de gestão operacional (single-file, offline, localStorage)
+   ============================================================ */
+
+const DB_KEY = "plataforma_logistica_v1";
+
+/* ---------- Seed data ---------- */
+const SEED = {
+  empresa:{ nome:"Grupo Lamônica — Plataforma Logística", cnpj:"", cidade:"Madre de Deus / BA" },
+  visaoGeral:{
+    objetivo:"Estruturar e operar a plataforma logística do grupo, garantindo eficiência no transporte, controle de frota e previsibilidade de custos.",
+    escopo:"Gestão de coletas, transferências e entregas; controle de frota, motoristas e abastecimento; indicadores operacionais e financeiros.",
+    metas:"Reduzir custo por viagem em 12%, atingir 95% de entregas no prazo e 90% de disponibilidade da frota até dezembro/2026.",
+    responsaveis:"Diretoria de Operações — implantação; Coordenação Logística — execução.",
+    cronograma:"Ago/2026 a Dez/2026 (ciclo de implantação Fase 1).",
+    percentConcluido:35
+  },
+  fluxo:["Entrada / Coleta","Processamento","Transferência","Entrega","Indicadores"],
+  fluxoAtivo:4,
+  responsabilidades:[
+    {id:id(),departamento:"Operações",responsavel:"Angili Lira",cargo:"Coordenadora",atividade:"Definir rotas e escala de motoristas",dataInicio:"2026-08-01",status:"Em andamento",obs:"Prioridade da implantação"},
+    {id:id(),departamento:"Financeiro",responsavel:"Carlos Mendes",cargo:"Analista",atividade:"Estruturar centro de custos da frota",dataInicio:"2026-08-05",status:"Em andamento",obs:""},
+    {id:id(),departamento:"Manutenção",responsavel:"Rui Alves",cargo:"Supervisor",atividade:"Plano de manutenção preventiva",dataInicio:"2026-08-10",status:"Pendente",obs:"Aguardando frota cadastrada"},
+    {id:id(),departamento:"Tecnologia",responsavel:"Miquéias",cargo:"Desenvolvedor",atividade:"Implantar sistema de gestão",dataInicio:"2026-08-01",status:"Em andamento",obs:"Fase 1"}
+  ],
+  organograma:[
+    {id:id(),nome:"Roberto Lamônica",cargo:"Presidente",nivel:"Presidência",setor:"Direção",telefone:"(71) 90000-0001",email:"presidencia@lamonica.com",status:"Ativo"},
+    {id:id(),nome:"Fernanda Lamônica",cargo:"Diretora de Operações",nivel:"Diretoria",setor:"Operações",telefone:"(71) 90000-0002",email:"diretoria@lamonica.com",status:"Ativo"},
+    {id:id(),nome:"Marcos Teixeira",cargo:"Gerente de Logística",nivel:"Gerência",setor:"Logística",telefone:"(71) 90000-0003",email:"gerencia@lamonica.com",status:"Ativo"},
+    {id:id(),nome:"Angili Lira",cargo:"Coordenadora de Frota",nivel:"Coordenação",setor:"Operações",telefone:"(71) 90000-0004",email:"coordenacao@lamonica.com",status:"Ativo"},
+    {id:id(),nome:"Rui Alves",cargo:"Supervisor de Pátio",nivel:"Supervisão",setor:"Manutenção",telefone:"(71) 90000-0005",email:"supervisao@lamonica.com",status:"Ativo"},
+    {id:id(),nome:"Equipe de Expedição",cargo:"Operador Logístico",nivel:"Operação",setor:"Expedição",telefone:"—",email:"operacao@lamonica.com",status:"Ativo"},
+    {id:id(),nome:"José da Silva",cargo:"Motorista",nivel:"Motoristas",setor:"Transporte",telefone:"(71) 90000-0006",email:"—",status:"Ativo"},
+    {id:id(),nome:"Auxiliares de Carga",cargo:"Ajudante",nivel:"Auxiliares",setor:"Transporte",telefone:"—",email:"—",status:"Ativo"}
+  ],
+  integrantes:[
+    {id:id(),nome:"Angili Lira",cargo:"Coordenadora",departamento:"Operações",atividade:"Montar escala semanal de motoristas",prazo:"2026-08-15",prioridade:"Alta",situacao:"Em andamento",obs:""},
+    {id:id(),nome:"Carlos Mendes",cargo:"Analista",departamento:"Financeiro",atividade:"Fechamento de combustível mensal",prazo:"2026-08-31",prioridade:"Média",situacao:"Pendente",obs:""},
+    {id:id(),nome:"Rui Alves",cargo:"Supervisor",departamento:"Manutenção",atividade:"Checklist de saída dos veículos",prazo:"2026-08-12",prioridade:"Alta",situacao:"Concluído",obs:"Modelo aprovado"}
+  ],
+  financeiro:[
+    {id:id(),tipo:"Receita",categoria:"Fretes",data:"2026-08-03",valor:48500,responsavel:"Comercial",documento:"NF 1201",situacao:"Confirmado"},
+    {id:id(),tipo:"Despesa",categoria:"Combustível",data:"2026-08-04",valor:12300,responsavel:"Operações",documento:"Cupom 88",situacao:"Confirmado"},
+    {id:id(),tipo:"Despesa",categoria:"Manutenção",data:"2026-08-05",valor:4200,responsavel:"Manutenção",documento:"OS 45",situacao:"Confirmado"},
+    {id:id(),tipo:"Despesa",categoria:"Folha de pagamento",data:"2026-08-05",valor:18700,responsavel:"RH",documento:"Folha ago",situacao:"Pendente"},
+    {id:id(),tipo:"Despesa",categoria:"Pneus",data:"2026-08-06",valor:3600,responsavel:"Manutenção",documento:"NF 552",situacao:"Confirmado"},
+    {id:id(),tipo:"Despesa",categoria:"Seguro",data:"2026-08-06",valor:2100,responsavel:"Financeiro",documento:"Apólice",situacao:"Confirmado"},
+    {id:id(),tipo:"Receita",categoria:"Fretes",data:"2026-08-07",valor:31000,responsavel:"Comercial",documento:"NF 1202",situacao:"Confirmado"}
+  ],
+  financeiroCategorias:["Fretes","Combustível","Manutenção","Folha de pagamento","Terceiros","Peças","Pneus","Seguro","Licenciamento","Impostos","Investimentos"],
+  kpis:[
+    {id:id(),nome:"Viagens realizadas",meta:120,atual:98,unidade:"",maiorMelhor:true},
+    {id:id(),nome:"Entregas no prazo",meta:95,atual:91,unidade:"%",maiorMelhor:true},
+    {id:id(),nome:"Entregas atrasadas",meta:5,atual:9,unidade:"%",maiorMelhor:false},
+    {id:id(),nome:"Tempo médio de entrega",meta:24,atual:27,unidade:"h",maiorMelhor:false},
+    {id:id(),nome:"Consumo de combustível",meta:2.8,atual:3.1,unidade:"km/l",maiorMelhor:true},
+    {id:id(),nome:"Km rodados",meta:14000,atual:12800,unidade:"km",maiorMelhor:true},
+    {id:id(),nome:"Disponibilidade da frota",meta:90,atual:86,unidade:"%",maiorMelhor:true},
+    {id:id(),nome:"Custo por viagem",meta:380,atual:412,unidade:"R$",maiorMelhor:false},
+    {id:id(),nome:"Satisfação do cliente",meta:90,atual:93,unidade:"%",maiorMelhor:true}
+  ],
+  roadmap:[
+    {id:id(),nome:"Cadastro de frota e motoristas",responsavel:"Angili Lira",inicio:"2026-08-01",fim:"2026-08-20",status:"Em andamento",percentual:60,dependencia:"—"},
+    {id:id(),nome:"Estrutura financeira / custos",responsavel:"Carlos Mendes",inicio:"2026-08-05",fim:"2026-08-31",status:"Em andamento",percentual:40,dependencia:"Cadastro de frota"},
+    {id:id(),nome:"Plano de manutenção",responsavel:"Rui Alves",inicio:"2026-09-01",fim:"2026-09-30",status:"Pendente",percentual:0,dependencia:"Cadastro de frota"},
+    {id:id(),nome:"Implantação do sistema (Fase 1)",responsavel:"Miquéias",inicio:"2026-08-01",fim:"2026-09-15",status:"Em andamento",percentual:35,dependencia:"—"},
+    {id:id(),nome:"Painel de indicadores",responsavel:"Miquéias",inicio:"2026-09-16",fim:"2026-10-10",status:"Pendente",percentual:0,dependencia:"Implantação"},
+    {id:id(),nome:"Treinamento das equipes",responsavel:"Fernanda L.",inicio:"2026-10-01",fim:"2026-10-20",status:"Pendente",percentual:0,dependencia:"Painel de indicadores"}
+  ],
+  funcionarios:[
+    {id:id(),nome:"Carlos Mendes",cargo:"Analista Financeiro",setor:"Financeiro",telefone:"(71) 90000-0010",email:"carlos@lamonica.com",status:"Ativo"},
+    {id:id(),nome:"Angili Lira",cargo:"Coordenadora",setor:"Operações",telefone:"(71) 90000-0004",email:"angili@lamonica.com",status:"Ativo"}
+  ],
+  motoristas:[
+    {id:id(),nome:"José da Silva",cnh:"12345678900",categoria:"E",telefone:"(71) 90000-0006",veiculo:"MERCEDES 1620 — ABC1D23",status:"Ativo"},
+    {id:id(),nome:"Antônio Reis",cnh:"98765432100",categoria:"D",telefone:"(71) 90000-0007",veiculo:"VW 8160 — DEF4G56",status:"Ativo"}
+  ],
+  veiculos:[
+    {id:id(),placa:"ABC1D23",modelo:"Mercedes-Benz 1620",tipo:"Truck",ano:"2019",km:"210500",status:"Ativo"},
+    {id:id(),placa:"DEF4G56",modelo:"VW Delivery 8.160",tipo:"3/4",ano:"2021",km:"98300",status:"Ativo"},
+    {id:id(),placa:"GHI7J89",modelo:"Iveco Daily",tipo:"Van",ano:"2020",km:"142000",status:"Manutenção"}
+  ],
+  clientes:[
+    {id:id(),nome:"Distribuidora Bahia Norte",contato:"(71) 3333-0001",cidade:"Salvador",documento:"CNPJ 12.345.678/0001-00",status:"Ativo"},
+    {id:id(),nome:"Supermercados União",contato:"(71) 3333-0002",cidade:"Candeias",documento:"CNPJ 98.765.432/0001-00",status:"Ativo"}
+  ],
+  fornecedores:[
+    {id:id(),nome:"Posto Rota Sul",contato:"(71) 3333-1000",categoria:"Combustível",cidade:"Madre de Deus",status:"Ativo"},
+    {id:id(),nome:"AutoPeças BA",contato:"(71) 3333-1001",categoria:"Peças",cidade:"Salvador",status:"Ativo"}
+  ],
+  rotas:[
+    {id:id(),nome:"Madre de Deus → Salvador",origem:"Madre de Deus",destino:"Salvador",distancia:"58 km",tempo:"1h10",status:"Ativa"},
+    {id:id(),nome:"Candeias → Feira de Santana",origem:"Candeias",destino:"Feira de Santana",distancia:"92 km",tempo:"1h40",status:"Ativa"}
+  ],
+  filiais:[
+    {id:id(),nome:"Matriz Madre de Deus",tipo:"Matriz",cidade:"Madre de Deus / BA",responsavel:"Fernanda L.",status:"Ativa"},
+    {id:id(),nome:"CD Salvador",tipo:"Centro de Distribuição",cidade:"Salvador / BA",responsavel:"Marcos T.",status:"Ativa"}
+  ],
+  usuarios:[
+    {id:id(),nome:"Miquéias",email:"admin@lamonica.com",nivel:"Administrador",status:"Ativo"},
+    {id:id(),nome:"Fernanda Lamônica",email:"diretoria@lamonica.com",nivel:"Diretor",status:"Ativo"},
+    {id:id(),nome:"Marcos Teixeira",email:"gerencia@lamonica.com",nivel:"Gerente",status:"Ativo"},
+    {id:id(),nome:"Carlos Mendes",email:"financeiro@lamonica.com",nivel:"Financeiro",status:"Ativo"},
+    {id:id(),nome:"José da Silva",email:"motorista@lamonica.com",nivel:"Motorista",status:"Ativo"}
+  ]
+};
+
+const NIVEIS = ["Administrador","Diretor","Gerente","Supervisor","Operador","Financeiro","RH","Motorista","Cliente"];
+
+/* ---------- helpers ---------- */
+function id(){return Math.random().toString(36).slice(2,10)}
+function load(){ try{const r=localStorage.getItem(DB_KEY); if(r) return JSON.parse(r);}catch(e){} const c=JSON.parse(JSON.stringify(SEED)); save(c); return c; }
+function save(d){ try{localStorage.setItem(DB_KEY,JSON.stringify(d));}catch(e){ console.warn("Sem persistência (localStorage indisponível neste modo). Hospede o arquivo para salvar."); } }
+let DB = load();
+let CURRENT_ROLE = "Administrador";
+function esc(s){return (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function money(v){return "R$ "+(Number(v)||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fdate(d){ if(!d) return "—"; const p=String(d).split("-"); return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d; }
+function statusTag(s){
+  const v=(s||"").toLowerCase();
+  if(/conclu|confirm|ativ|realizad/.test(v)) return `<span class="tag g">${esc(s)}</span>`;
+  if(/andamento|parcial|tenta/.test(v)) return `<span class="tag a">${esc(s)}</span>`;
+  if(/pend|atras|parad|inativ|manuten/.test(v)) return `<span class="tag r">${esc(s)}</span>`;
+  return `<span class="tag n">${esc(s||"—")}</span>`;
+}
+function prioTag(p){
+  const c=p==="Alta"?"var(--red)":p==="Média"?"var(--amber)":"var(--green)";
+  return `<span class="prio-dot" style="background:${c}"></span>${esc(p||"—")}`;
+}
+
+/* ---------- Access control ---------- */
+const PERMISSIONS = {
+  Administrador:["dashboard","visao","resp","org","integrantes","financeiro","kpi","roadmap","cadastros","acessos","modelo"],
+  Diretor:["dashboard","visao","resp","org","integrantes","financeiro","kpi","roadmap","cadastros"],
+  Gerente:["dashboard","visao","resp","org","integrantes","kpi","roadmap","cadastros"],
+  Supervisor:["dashboard","resp","integrantes","kpi","roadmap","cadastros"],
+  Operador:["dashboard","integrantes","cadastros"],
+  Financeiro:["dashboard","financeiro","kpi"],
+  RH:["dashboard","org","integrantes","cadastros"],
+  Motorista:["dashboard"],
+  Cliente:["dashboard"]
+};
+function can(page){ return (PERMISSIONS[CURRENT_ROLE]||[]).includes(page); }
+
+/* ---------- Menu ---------- */
+const MENU = [
+  {g:"Operação"},
+  {k:"dashboard",t:"Dashboard",ic:"◧"},
+  {k:"visao",t:"Visão Geral",ic:"◈"},
+  {k:"resp",t:"Responsabilidades",ic:"☑"},
+  {k:"org",t:"Estrutura Organizacional",ic:"⬡"},
+  {k:"integrantes",t:"Resp. por Integrante",ic:"◔"},
+  {g:"Gestão"},
+  {k:"financeiro",t:"Gestão Orçamentária",ic:"$"},
+  {k:"kpi",t:"Indicadores (KPIs)",ic:"◭"},
+  {k:"roadmap",t:"Roadmap",ic:"◰"},
+  {g:"Estrutura"},
+  {k:"cadastros",t:"Cadastros",ic:"▤"},
+  {k:"acessos",t:"Controle de Acesso",ic:"⚿"},
+  {k:"modelo",t:"Modelo de Dados",ic:"◫"}
+];
+function renderNav(){
+  const nav=document.getElementById("nav");
+  nav.innerHTML = MENU.map(m=>{
+    if(m.g) return `<div class="group">${m.g}</div>`;
+    if(!can(m.k)) return "";
+    return `<a href="#${m.k}" data-k="${m.k}"><span class="ic">${m.ic}</span>${m.t}</a>`;
+  }).join("");
+}
+
+/* ---------- Router ---------- */
+const ROUTES = {};
+function go(page){
+  if(!can(page)) page = "dashboard";
+  location.hash = page;
+}
+function router(){
+  let page = location.hash.replace("#","") || "dashboard";
+  if(!can(page)) page="dashboard";
+  document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("active",a.dataset.k===page));
+  const titles={dashboard:"Dashboard",visao:"Visão Geral",resp:"Responsabilidades",org:"Estrutura Organizacional",integrantes:"Responsabilidade por Integrante",financeiro:"Gestão Orçamentária",kpi:"Gestão de Indicadores",roadmap:"Roadmap",cadastros:"Cadastros",acessos:"Controle de Acesso",modelo:"Modelo de Dados"};
+  document.getElementById("pgTitle").textContent = titles[page]||"";
+  (ROUTES[page]||ROUTES.dashboard)();
+  document.getElementById("view").scrollTop=0;
+  if(window.innerWidth<=860) closeSidebar();
+}
+window.addEventListener("hashchange",router);
+
+/* ============================================================
+   SVG mini-charts (offline, sem dependências)
+   ============================================================ */
+function barChart(data,{w=520,h=200,color="#0B2A4A",fmt=(x)=>x}={}){
+  const pad={l:44,r:12,t:12,b:34}, iw=w-pad.l-pad.r, ih=h-pad.t-pad.b;
+  const max=Math.max(1,...data.map(d=>d.v)); const bw=iw/data.length*.62; const gap=iw/data.length;
+  let g="";
+  for(let i=0;i<=4;i++){const y=pad.t+ih-ih*(i/4);const val=Math.round(max*i/4);
+    g+=`<line x1="${pad.l}" y1="${y}" x2="${w-pad.r}" y2="${y}" stroke="#eef2f7"/><text x="${pad.l-6}" y="${y+4}" text-anchor="end" font-size="10" fill="#94a3b8">${fmt(val)}</text>`;}
+  data.forEach((d,i)=>{const bh=ih*(d.v/max);const x=pad.l+gap*i+(gap-bw)/2;const y=pad.t+ih-bh;
+    g+=`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="4" fill="${d.color||color}"><title>${esc(d.l)}: ${fmt(d.v)}</title></rect>`;
+    g+=`<text x="${x+bw/2}" y="${h-pad.b+16}" text-anchor="middle" font-size="10" fill="#64748b">${esc(d.l)}</text>`;});
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:${w}px">${g}</svg>`;
+}
+function lineChart(series,labels,{w=520,h=200}={}){
+  const pad={l:44,r:12,t:12,b:28}, iw=w-pad.l-pad.r, ih=h-pad.t-pad.b;
+  const all=series.flatMap(s=>s.data); const max=Math.max(1,...all);
+  let g="";
+  for(let i=0;i<=4;i++){const y=pad.t+ih-ih*(i/4);g+=`<line x1="${pad.l}" y1="${y}" x2="${w-pad.r}" y2="${y}" stroke="#eef2f7"/><text x="${pad.l-6}" y="${y+4}" text-anchor="end" font-size="10" fill="#94a3b8">${Math.round(max*i/4)}</text>`;}
+  const X=i=>pad.l+(iw/(labels.length-1||1))*i, Y=v=>pad.t+ih-ih*(v/max);
+  series.forEach(s=>{const pts=s.data.map((v,i)=>`${X(i)},${Y(v)}`).join(" ");
+    g+=`<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    s.data.forEach((v,i)=>g+=`<circle cx="${X(i)}" cy="${Y(v)}" r="3" fill="${s.color}"/>`);});
+  labels.forEach((l,i)=>g+=`<text x="${X(i)}" y="${h-8}" text-anchor="middle" font-size="10" fill="#64748b">${esc(l)}</text>`);
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:${w}px">${g}</svg>`;
+}
+function donut(pct,color){
+  const r=42,c=2*Math.PI*r,off=c*(1-pct/100);
+  return `<svg viewBox="0 0 110 110" width="96" height="96"><circle cx="55" cy="55" r="${r}" fill="none" stroke="#eef2f7" stroke-width="12"/><circle cx="55" cy="55" r="${r}" fill="none" stroke="${color}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}" transform="rotate(-90 55 55)"/><text x="55" y="61" text-anchor="middle" font-size="22" font-weight="800" fill="#0B2A4A">${Math.round(pct)}%</text></svg>`;
+}
+
+/* ============================================================
+   Generic CRUD engine
+   ============================================================ */
+const ENTITIES = {
+  resp:{store:"responsabilidades",title:"Responsabilidade",cols:[
+    {k:"departamento",l:"Departamento"},{k:"responsavel",l:"Responsável"},{k:"cargo",l:"Cargo"},
+    {k:"atividade",l:"Atividade",wide:true},{k:"dataInicio",l:"Início",type:"date",fmt:fdate},
+    {k:"status",l:"Status",type:"select",opts:["Pendente","Em andamento","Concluído"],tag:true},{k:"obs",l:"Observações",type:"textarea",hideList:true}]},
+  org:{store:"organograma",title:"Cargo / Pessoa",cols:[
+    {k:"nome",l:"Nome"},{k:"cargo",l:"Cargo"},{k:"nivel",l:"Nível",type:"select",opts:["Presidência","Diretoria","Gerência","Coordenação","Supervisão","Operação","Motoristas","Auxiliares"]},
+    {k:"setor",l:"Setor"},{k:"telefone",l:"Telefone"},{k:"email",l:"E-mail"},{k:"status",l:"Status",type:"select",opts:["Ativo","Inativo"],tag:true}]},
+  integrantes:{store:"integrantes",title:"Atividade do Integrante",cols:[
+    {k:"nome",l:"Nome"},{k:"cargo",l:"Cargo"},{k:"departamento",l:"Departamento"},{k:"atividade",l:"Atividade",wide:true},
+    {k:"prazo",l:"Prazo",type:"date",fmt:fdate},{k:"prioridade",l:"Prioridade",type:"select",opts:["Alta","Média","Baixa"],prio:true},
+    {k:"situacao",l:"Situação",type:"select",opts:["Pendente","Em andamento","Concluído"],tag:true},{k:"obs",l:"Observações",type:"textarea",hideList:true}]},
+  funcionarios:{store:"funcionarios",title:"Funcionário",cols:[
+    {k:"nome",l:"Nome"},{k:"cargo",l:"Cargo"},{k:"setor",l:"Setor"},{k:"telefone",l:"Telefone"},{k:"email",l:"E-mail"},{k:"status",l:"Status",type:"select",opts:["Ativo","Inativo"],tag:true}]},
+  motoristas:{store:"motoristas",title:"Motorista",cols:[
+    {k:"nome",l:"Nome"},{k:"cnh",l:"CNH"},{k:"categoria",l:"Categoria",type:"select",opts:["A","B","C","D","E"]},{k:"telefone",l:"Telefone"},{k:"veiculo",l:"Veículo"},{k:"status",l:"Status",type:"select",opts:["Ativo","Inativo"],tag:true}]},
+  veiculos:{store:"veiculos",title:"Veículo",cols:[
+    {k:"placa",l:"Placa"},{k:"modelo",l:"Modelo"},{k:"tipo",l:"Tipo"},{k:"ano",l:"Ano"},{k:"km",l:"KM"},{k:"status",l:"Status",type:"select",opts:["Ativo","Manutenção","Inativo"],tag:true}]},
+  clientes:{store:"clientes",title:"Cliente",cols:[
+    {k:"nome",l:"Nome / Razão"},{k:"documento",l:"Documento"},{k:"contato",l:"Contato"},{k:"cidade",l:"Cidade"},{k:"status",l:"Status",type:"select",opts:["Ativo","Inativo"],tag:true}]},
+  fornecedores:{store:"fornecedores",title:"Fornecedor",cols:[
+    {k:"nome",l:"Nome"},{k:"categoria",l:"Categoria"},{k:"contato",l:"Contato"},{k:"cidade",l:"Cidade"},{k:"status",l:"Status",type:"select",opts:["Ativo","Inativo"],tag:true}]},
+  rotas:{store:"rotas",title:"Rota",cols:[
+    {k:"nome",l:"Rota"},{k:"origem",l:"Origem"},{k:"destino",l:"Destino"},{k:"distancia",l:"Distância"},{k:"tempo",l:"Tempo"},{k:"status",l:"Status",type:"select",opts:["Ativa","Inativa"],tag:true}]},
+  filiais:{store:"filiais",title:"Filial / CD",cols:[
+    {k:"nome",l:"Nome"},{k:"tipo",l:"Tipo",type:"select",opts:["Matriz","Filial","Centro de Distribuição"]},{k:"cidade",l:"Cidade"},{k:"responsavel",l:"Responsável"},{k:"status",l:"Status",type:"select",opts:["Ativa","Inativa"],tag:true}]},
+  usuarios:{store:"usuarios",title:"Usuário",cols:[
+    {k:"nome",l:"Nome"},{k:"email",l:"E-mail"},{k:"nivel",l:"Nível de acesso",type:"select",opts:NIVEIS},{k:"status",l:"Status",type:"select",opts:["Ativo","Inativo"],tag:true}]},
+  kpi:{store:"kpis",title:"Indicador",cols:[
+    {k:"nome",l:"Indicador"},{k:"meta",l:"Meta",type:"number"},{k:"atual",l:"Resultado atual",type:"number"},{k:"unidade",l:"Unidade"},
+    {k:"maiorMelhor",l:"Direção",type:"select",opts:["true","false"],optLabels:{true:"Maior é melhor",false:"Menor é melhor"}}]},
+  roadmap:{store:"roadmap",title:"Etapa do Roadmap",cols:[
+    {k:"nome",l:"Etapa"},{k:"responsavel",l:"Responsável"},{k:"inicio",l:"Início",type:"date",fmt:fdate},{k:"fim",l:"Fim",type:"date",fmt:fdate},
+    {k:"status",l:"Status",type:"select",opts:["Pendente","Em andamento","Concluído"],tag:true},{k:"percentual",l:"% Concluído",type:"number"},{k:"dependencia",l:"Dependência"}]},
+  financeiro:{store:"financeiro",title:"Lançamento",cols:[
+    {k:"tipo",l:"Tipo",type:"select",opts:["Receita","Despesa"],tag:true},{k:"categoria",l:"Categoria",type:"select",opts:SEED.financeiroCategorias},
+    {k:"data",l:"Data",type:"date",fmt:fdate},{k:"valor",l:"Valor",type:"number",fmt:money},{k:"responsavel",l:"Responsável"},{k:"documento",l:"Documento"},
+    {k:"situacao",l:"Situação",type:"select",opts:["Confirmado","Pendente"],tag:true}]}
+};
+
+let modalState=null;
+function openForm(entKey,record){
+  const E=ENTITIES[entKey]; modalState={entKey,editing:record?record.id:null};
+  const rec=record||{};
+  const fields=E.cols.map(c=>{
+    const val=rec[c.k]!==undefined?rec[c.k]:"";
+    const wide=c.type==="textarea"||c.wide?' full':'';
+    let input;
+    if(c.type==="select"){
+      const opts=(c.opts||[]).map(o=>`<option value="${esc(o)}" ${String(val)===String(o)?"selected":""}>${esc(c.optLabels?c.optLabels[o]:o)}</option>`).join("");
+      input=`<select data-f="${c.k}"><option value="">—</option>${opts}</select>`;
+    } else if(c.type==="textarea"){
+      input=`<textarea data-f="${c.k}">${esc(val)}</textarea>`;
+    } else {
+      const t=c.type==="number"?"number":c.type==="date"?"date":"text";
+      input=`<input type="${t}" data-f="${c.k}" value="${esc(val)}" ${c.type==="number"?'step="any"':''}>`;
+    }
+    return `<div class="field${wide}"><label>${c.l}</label>${input}</div>`;
+  }).join("");
+  document.getElementById("modalRoot").innerHTML=`
+    <div class="overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <header><h3>${record?"Editar":"Novo"} — ${E.title}</h3><button class="x" onclick="closeModal()">✕</button></header>
+        <div class="body">${fields}</div>
+        <footer><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveForm()">Salvar</button></footer>
+      </div>
+    </div>`;
+}
+function saveForm(){
+  const E=ENTITIES[modalState.entKey]; const rec={};
+  document.querySelectorAll("#modalRoot [data-f]").forEach(el=>{
+    const k=el.dataset.f; const col=E.cols.find(c=>c.k===k);
+    let v=el.value;
+    if(col&&col.type==="number") v=v===""?0:Number(v);
+    if(k==="maiorMelhor") v=(v==="true");
+    rec[k]=v;
+  });
+  const store=DB[E.store];
+  if(modalState.editing){ const i=store.findIndex(x=>x.id===modalState.editing); if(i>=0) store[i]={...store[i],...rec}; }
+  else { rec.id=id(); store.push(rec); }
+  save(DB); closeModal(); router();
+}
+function delRecord(entKey,rid){
+  if(!confirm("Excluir este registro?")) return;
+  const E=ENTITIES[entKey]; DB[E.store]=DB[E.store].filter(x=>x.id!==rid); save(DB); router();
+}
+function closeModal(){ document.getElementById("modalRoot").innerHTML=""; modalState=null; }
+
+/* Generic table renderer */
+function renderTable(entKey,list){
+  const E=ENTITIES[entKey];
+  const cols=E.cols.filter(c=>!c.hideList);
+  if(!list.length) return `<div class="card"><div class="empty">Nenhum registro. Clique em “Adicionar”.</div></div>`;
+  const head=cols.map(c=>`<th>${c.l}</th>`).join("")+"<th>Ações</th>";
+  const rows=list.map(r=>{
+    const tds=cols.map(c=>{
+      let v=r[c.k];
+      if(c.k==="maiorMelhor") v=v?"Maior é melhor":"Menor é melhor";
+      else if(c.tag) return `<td>${statusTag(v)}</td>`;
+      else if(c.prio) return `<td>${prioTag(v)}</td>`;
+      else if(c.fmt) v=c.fmt(v);
+      return `<td>${esc(v==null||v===""?"—":v)}</td>`;
+    }).join("");
+    return `<tr>${tds}<td style="white-space:nowrap">
+      <button class="iconbtn" title="Editar" onclick='openForm("${entKey}",${JSON.stringify(r).replace(/'/g,"&#39;")})'>✎</button>
+      <button class="iconbtn" title="Excluir" onclick="delRecord('${entKey}','${r.id}')">🗑</button></td>`;
+  }).join("");
+  return `<div class="card tablewrap"><table class="data"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+/* ============================================================
+   PAGES
+   ============================================================ */
+
+/* --- Dashboard --- */
+ROUTES.dashboard=function(){
+  const viagens=DB.kpis.find(k=>/viagens/i.test(k.nome));
+  const veicAtivos=DB.veiculos.filter(v=>v.status==="Ativo").length;
+  const motAtivos=DB.motoristas.filter(m=>m.status==="Ativo").length;
+  const emAndamento=DB.roadmap.filter(r=>r.status==="Em andamento").length;
+  const pendencias=DB.integrantes.filter(i=>i.situacao==="Pendente").length + DB.financeiro.filter(f=>f.situacao==="Pendente").length;
+  const alertas=DB.veiculos.filter(v=>v.status==="Manutenção").length + DB.kpis.filter(k=>kpiColor(k)==="red").length;
+
+  const receita=DB.financeiro.filter(f=>f.tipo==="Receita").reduce((a,b)=>a+Number(b.valor||0),0);
+  const despesa=DB.financeiro.filter(f=>f.tipo==="Despesa").reduce((a,b)=>a+Number(b.valor||0),0);
+
+  const stat=(lbl,val,foot,ic,cls="")=>`<div class="stat ${cls}"><div class="ic">${ic}</div><div class="lbl">${lbl}</div><div class="val">${val}</div><div class="foot">${foot}</div></div>`;
+
+  // últimas 6 categorias de despesa para gráfico
+  const catMap={};
+  DB.financeiro.filter(f=>f.tipo==="Despesa").forEach(f=>catMap[f.categoria]=(catMap[f.categoria]||0)+Number(f.valor||0));
+  const chartData=Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([l,v])=>({l:l.split(" ")[0],v,color:"#12385f"}));
+
+  document.getElementById("view").innerHTML=`
+    <div class="pagehead"><div class="t"><h2>${esc(DB.empresa.nome)}</h2><p>Resumo operacional • ${esc(DB.empresa.cidade)}</p></div></div>
+    <div class="stats">
+      ${stat("Viagens do ciclo",viagens?viagens.atual:0,"Meta: "+(viagens?viagens.meta:0),"◱")}
+      ${stat("Veículos ativos",veicAtivos,DB.veiculos.length+" na frota","🚚")}
+      ${stat("Motoristas ativos",motAtivos,"Cadastrados: "+DB.motoristas.length,"◉")}
+      ${stat("Entregas em andamento",emAndamento,"Etapas do roadmap","◔")}
+      ${stat("Pendências",pendencias,"Atividades + financeiro","⚑","warn")}
+      ${stat("Alertas",alertas,"Frota + KPIs críticos","▲","alert")}
+    </div>
+    <div class="grid" style="grid-template-columns:1.5fr 1fr;margin-top:16px">
+      <div class="card chartcard">
+        <h3 class="sec">Despesas por categoria</h3><p class="seclabel">Ciclo atual — R$</p>
+        ${chartData.length?barChart(chartData,{fmt:v=>(v/1000).toFixed(0)+"k"}):'<div class="empty">Sem lançamentos.</div>'}
+      </div>
+      <div class="card card-pad">
+        <h3 class="sec">Resultado financeiro</h3><p class="seclabel">Ciclo atual</p>
+        <div class="infoline"><div class="k">Receitas</div><div class="v" style="color:var(--green);font-weight:700">${money(receita)}</div></div>
+        <div class="infoline"><div class="k">Despesas</div><div class="v" style="color:var(--red);font-weight:700">${money(despesa)}</div></div>
+        <div class="infoline"><div class="k">Saldo</div><div class="v" style="font-weight:800;color:var(--navy)">${money(receita-despesa)}</div></div>
+        <div class="help">Implantação Fase 1: ${DB.visaoGeral.percentConcluido}% concluída. Veja o roadmap para detalhes.</div>
+      </div>
+    </div>`;
+};
+
+/* --- Visão Geral --- */
+ROUTES.visao=function(){
+  const v=DB.visaoGeral;
+  const line=(k,val)=>`<div class="infoline"><div class="k">${k}</div><div class="v">${esc(val)||"—"}</div></div>`;
+  const flow=DB.fluxo.map((f,i)=>`<div class="step ${i===DB.fluxoAtivo?"active":""}">${esc(f)}</div>`).join("");
+  document.getElementById("view").innerHTML=`
+    <div class="pagehead"><div class="t"><h2>Visão Geral</h2><p>Escopo, propósito e interfaces da plataforma</p></div>
+      <div class="spacer"></div><button class="btn primary" onclick="editVisao()">✎ Editar</button></div>
+    <div class="vg-grid">
+      <div class="card card-pad">
+        <h3 class="sec">O que fazemos</h3><p class="seclabel">Objetivo e escopo da operação</p>
+        ${line("Objetivo",v.objetivo)}
+        ${line("Escopo",v.escopo)}
+        ${line("Metas",v.metas)}
+        ${line("Responsáveis",v.responsaveis)}
+        ${line("Cronograma",v.cronograma)}
+        <div style="margin-top:16px"><b style="color:var(--navy);font-size:13px">Fluxo macro da área</b>
+        <div class="flow">${flow}</div></div>
+      </div>
+      <div class="card card-pad">
+        <h3 class="sec">Situação da implantação</h3><p class="seclabel">Percentual concluído (Fase 1)</p>
+        <div style="text-align:center;margin:12px 0">${donut(v.percentConcluido,"#00A9C7")}</div>
+        <div class="progresswrap"><i style="width:${v.percentConcluido}%"></i></div>
+        <div class="infoline" style="margin-top:16px"><div class="k">Etapas ativas</div><div class="v">${DB.roadmap.filter(r=>r.status==="Em andamento").length}</div></div>
+        <div class="infoline"><div class="k">Concluídas</div><div class="v">${DB.roadmap.filter(r=>r.status==="Concluído").length}</div></div>
+        <div class="infoline"><div class="k">Pendentes</div><div class="v">${DB.roadmap.filter(r=>r.status==="Pendente").length}</div></div>
+      </div>
+    </div>`;
+};
+function editVisao(){
+  const v=DB.visaoGeral;
+  const f=(l,k,ta)=> ta?`<div class="field full"><label>${l}</label><textarea data-v="${k}">${esc(v[k])}</textarea></div>`
+    :`<div class="field full"><label>${l}</label><input data-v="${k}" value="${esc(v[k])}"></div>`;
+  document.getElementById("modalRoot").innerHTML=`
+   <div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal">
+    <header><h3>Editar Visão Geral</h3><button class="x" onclick="closeModal()">✕</button></header>
+    <div class="body">
+      ${f("Objetivo","objetivo",true)}${f("Escopo","escopo",true)}${f("Metas","metas",true)}
+      ${f("Responsáveis","responsaveis")}${f("Cronograma","cronograma")}
+      <div class="field full"><label>% concluído</label><input type="number" min="0" max="100" data-v="percentConcluido" value="${v.percentConcluido}"></div>
+    </div>
+    <footer><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" onclick="saveVisao()">Salvar</button></footer>
+   </div></div>`;
+}
+function saveVisao(){
+  document.querySelectorAll("#modalRoot [data-v]").forEach(el=>{
+    const k=el.dataset.v; DB.visaoGeral[k]= k==="percentConcluido"?Number(el.value):el.value;
+  });
+  save(DB); closeModal(); router();
+}
+
+/* --- Simple CRUD pages --- */
+function crudPage(entKey,subtitle,filterCfg){
+  const E=ENTITIES[entKey];
+  let list=[...DB[E.store]];
+  const fid="flt_"+entKey;
+  const state=window["__flt_"+entKey]||{};
+  // apply filters
+  (filterCfg||[]).forEach(fc=>{
+    const val=state[fc.k];
+    if(val) list=list.filter(r=>String(r[fc.k]||"")===val);
+  });
+  if(state.__q){const q=state.__q.toLowerCase();list=list.filter(r=>Object.values(r).some(x=>String(x).toLowerCase().includes(q)));}
+
+  let filtersHtml="";
+  if(filterCfg){
+    filtersHtml=`<div class="filters">
+      <input placeholder="Buscar..." oninput="setFlt('${entKey}','__q',this.value)" value="${esc(state.__q||"")}">
+      ${filterCfg.map(fc=>{
+        const opts=[...new Set(DB[E.store].map(r=>r[fc.k]).filter(Boolean))];
+        return `<select onchange="setFlt('${entKey}','${fc.k}',this.value)"><option value="">${fc.l}: todos</option>${opts.map(o=>`<option ${state[fc.k]===o?"selected":""}>${esc(o)}</option>`).join("")}</select>`;
+      }).join("")}
+    </div>`;
+  }
+  document.getElementById("view").innerHTML=`
+    <div class="pagehead"><div class="t"><h2>${ENTITIES[entKey].title.replace(/ .*/,"")==="Atividade"?"Responsabilidade por Integrante":pageTitleFor(entKey)}</h2><p>${subtitle}</p></div>
+      <div class="spacer"></div><button class="btn primary" onclick='openForm("${entKey}")'>+ Adicionar</button></div>
+    ${filtersHtml}
+    ${renderTable(entKey,list)}`;
+}
+function pageTitleFor(k){const t={resp:"Responsabilidades",integrantes:"Responsabilidade por Integrante",org:"Estrutura Organizacional"};return t[k]||ENTITIES[k].title;}
+function setFlt(entKey,k,v){ window["__flt_"+entKey]=window["__flt_"+entKey]||{}; window["__flt_"+entKey][k]=v; router(); }
+
+ROUTES.resp=()=>crudPage("resp","Frentes de atuação e entregas recorrentes da área");
+ROUTES.integrantes=()=>crudPage("integrantes","O que cada integrante faz",[{k:"departamento",l:"Depto"},{k:"cargo",l:"Cargo"},{k:"nome",l:"Responsável"},{k:"situacao",l:"Status"}]);
+
+/* --- Estrutura Organizacional --- */
+ROUTES.org=function(){
+  const niveis=["Presidência","Diretoria","Gerência","Coordenação","Supervisão","Operação","Motoristas","Auxiliares"];
+  const byLvl={}; DB.organograma.forEach(p=>{(byLvl[p.nivel]=byLvl[p.nivel]||[]).push(p);});
+  const chart=niveis.filter(n=>byLvl[n]).map(n=>`<div class="lvl">${byLvl[n].map(p=>`
+    <div class="orgnode"><div class="cargo">${esc(p.nivel)}</div><div class="nome">${esc(p.nome)}</div>
+    <div class="meta">${esc(p.cargo)} • ${esc(p.setor)}</div>
+    <div class="meta">${esc(p.telefone)} ${p.email&&p.email!=="—"?"• "+esc(p.email):""}</div></div>`).join("")}</div>`).join("");
+  document.getElementById("view").innerHTML=`
+    <div class="pagehead"><div class="t"><h2>Estrutura Organizacional</h2><p>Organograma da área e alocação da equipe</p></div>
+      <div class="spacer"></div><button class="btn primary" onclick='openForm("org")'>+ Adicionar cargo</button></div>
+    <div class="card card-pad"><div class="org">${chart||'<div class="empty">Sem cargos cadastrados.</div>'}</div></div>
+    <h3 class="sec" style="margin:22px 0 10px">Tabela de cargos</h3>
+    ${renderTable("org",DB.organograma)}`;
+};
+
+/* --- Gestão Orçamentária --- */
+ROUTES.financeiro=function(){
+  const list=[...DB.financeiro];
+  const rec=list.filter(f=>f.tipo==="Receita").reduce((a,b)=>a+Number(b.valor||0),0);
+  const desp=list.filter(f=>f.tipo==="Despesa").reduce((a,b)=>a+Number(b.valor||0),0);
+  const catMap={}; list.filter(f=>f.tipo==="Despesa").forEach(f=>catMap[f.categoria]=(catMap[f.categoria]||0)+Number(f.valor||0));
+  const bars=Object.entries(catMap).sort((a,b)=>b[1]-a[1]).map(([l,v])=>({l:l.split(" ")[0],v,color:"#12385f"}));
+  const stat=(l,v,c)=>`<div class="stat"><div class="lbl">${l}</div><div class="val" style="color:${c};font-size:24px">${money(v)}</div></div>`;
+  document.getElementById("view").innerHTML=`
+    <div class="pagehead"><div class="t"><h2>Gestão Orçamentária</h2><p>Execução do orçamento, custos e resultados</p></div>
+      <div class="spacer"></div><button class="btn primary" onclick='openForm("financeiro")'>+ Lançamento</button></div>
+    <div class="stats" style="margin-bottom:16px">
+      ${stat("Receitas",rec,"var(--green)")}${stat("Despesas",desp,"var(--red)")}${stat("Saldo",rec-desp,"var(--navy)")}
+      <div class="stat"><div class="lbl">Lançamentos</div><div class="val">${list.length}</div><div class="foot">${list.filter(f=>f.situacao==="Pendente").length} pendentes</div></div>
+    </div>
+    <div class="card chartcard" style="margin-bottom:16px">
+      <h3 class="sec">Despesas por categoria (centro de custos)</h3><p class="seclabel">Comparativo do ciclo</p>
+      ${bars.length?barChart(bars,{w:760,fmt:v=>(v/1000).toFixed(1)+"k"}):'<div class="empty">Sem despesas lançadas.</div>'}
+    </div>
+    ${renderTable("financeiro",list)}`;
+};
+
+/* --- KPIs --- */
+function kpiPct(k){
+  if(k.maiorMelhor){ return Math.min(100,Math.round((k.atual/(k.meta||1))*100)); }
+  // menor é melhor: 100% quando atual<=meta
+  if(k.atual<=k.meta) return 100;
+  return Math.max(0,Math.round((k.meta/(k.atual||1))*100));
+}
+function kpiColor(k){ const p=kpiPct(k); return p>=95?"green":p>=75?"amber":"red"; }
+ROUTES.kpi=function(){
+  const cmap={green:["var(--green)","var(--green-bg)"],amber:["var(--amber)","var(--amber-bg)"],red:["var(--red)","var(--red-bg)"]};
+  const cards=DB.kpis.map(k=>{
+    const p=kpiPct(k), col=cmap[kpiColor(k)];
+    const u=k.unidade&&k.unidade!=="R$"?" "+k.unidade:"";
+    const av=(k.unidade==="R$"?"R$ ":"")+Number(k.atual).toLocaleString("pt-BR")+u;
+    const mv=(k.unidade==="R$"?"R$ ":"")+Number(k.meta).toLocaleString("pt-BR")+u;
+    return `<div class="kpi" style="border-top:3px solid ${col[0]}">
+      <div class="name">${esc(k.nome)}</div>
+      <div class="nums"><b style="color:${col[0]}">${esc(av)}</b><small>meta ${esc(mv)}</small></div>
+      <div class="bar"><i style="width:${p}%;background:${col[0]}"></i></div>
+      <div class="foot"><span>${k.maiorMelhor?"Maior é melhor":"Menor é melhor"}</span>
+        <span style="color:${col[0]};font-weight:700">${p}%</span></div>
+      <div style="text-align:right;margin-top:6px">
+        <button class="iconbtn" onclick='openForm("kpi",${JSON.stringify(k).replace(/'/g,"&#39;")})'>✎</button>
+        <button class="iconbtn" onclick="delRecord('kpi','${k.id}')">🗑</button></div>
+    </div>`;
+  }).join("");
+  const g=DB.kpis.filter(k=>kpiColor(k)==="green").length,a=DB.kpis.filter(k=>kpiColor(k)==="amber").length,r=DB.kpis.filter(k=>kpiColor(k)==="red").length;
+  document.getElementById("view").innerHTML=`
+    <div class="pagehead"><div class="t"><h2>Gestão de Indicadores (KPIs)</h2><p>Metas x resultados — máx. recomendado 4 por área</p></div>
+      <div class="spacer"></div><button class="btn primary" onclick='openForm("kpi")'>+ Indicador</button></div>
+    <div class="card card-pad" style="margin-bottom:16px;display:flex;gap:26px;align-items:center;flex-wrap:wrap">
+      <div><b style="font-size:13px;color:var(--navy)">Semáforo de metas</b>
+      <div class="legend" style="margin-top:8px">
+        <span><i style="background:var(--green)"></i>No alvo (${g})</span>
+        <span><i style="background:var(--amber)"></i>Atenção (${a})</span>
+        <span><i style="background:var(--red)"></i>Crítico (${r})</span>
+      </div></div>
+      <div style="flex:1;min-width:180px"><div class="bar" style="height:14px;display:flex;border-radius:8px;overflow:hidden">
+        <i style="width:${g/DB.kpis.length*100}%;background:var(--green)"></i>
+        <i style="width:${a/DB.kpis.length*100}%;background:var(--amber)"></i>
+        <i style="width:${r/DB.kpis.length*100}%;background:var(--red)"></i>
+      </div></div>
+    </div>
+    <div class="kpigrid">${cards}</div>`;
+};
+
+/* --- Roadmap (Gantt) --- */
+ROUTES.roadmap=function(){
+  const items=DB.roadmap;
+  const dates=items.flatMap(i=>[i.inicio,i.fim]).filter(Boolean).map(d=>new Date(d));
+  const min=new Date(Math.min(...dates)), max=new Date(Math.max(...dates));
+  const span=Math.max(1,(max-min));
+  const months=[]; let cur=new Date(min.getFullYear(),min.getMonth(),1);
+  while(cur<=max){months.push(new Date(cur));cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);}
+  const mnames=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  const rows=items.map(it=>{
+    const s=new Date(it.inicio),e=new Date(it.fim);
+    const left=((s-min)/span)*100, width=Math.max(3,((e-s)/span)*100);
+    const cls=it.status==="Concluído"?"done":it.status==="Pendente"&&e<new Date()?"late":"";
+    return `<tr>
+      <td class="left" style="min-width:200px"><b>${esc(it.nome)}</b><br><small style="color:var(--muted)">${esc(it.responsavel)} • ${fdate(it.inicio)}→${fdate(it.fim)}</small></td>
+      <td class="left">${statusTag(it.status)}</td>
+      <td class="left">${it.percentual}%</td>
+      <td style="width:60%"><div class="track"><div class="barx ${cls}" style="left:${left}%;width:${width}%">${it.percentual}%</div></div></td>
+      <td class="left" style="white-space:nowrap">
+        <button class="iconbtn" onclick='openForm("roadmap",${JSON.stringify(it).replace(/'/g,"&#39;")})'>✎</button>
+        <button class="iconbtn" onclick="delRecord('roadmap','${it.id}')">🗑</button></td>
+    </tr>`;
+  }).join("");
+  document.getElementById("view").innerHTML=`
+    <div class="pagehead"><div class="t"><h2>Roadmap</h2><p>Cronograma das etapas do ciclo de implantação</p></div>
+      <div class="spacer"></div><button class="btn primary" onclick='openForm("roadmap")'>+ Etapa</button></div>
+    <div class="card card-pad">
+      <div class="legend" style="margin:0 0 12px"><span><i style="background:var(--navy3)"></i>Em andamento</span><span><i style="background:var(--green)"></i>Concluído</span><span><i style="background:var(--red)"></i>Atrasado</span></div>
+      <div class="gantt"><table>
+        <thead><tr><th class="left">Etapa</th><th class="left">Status</th><th class="left">%</th>
+          <th>${months.map(m=>mnames[m.getMonth()]+"/"+String(m.getFullYear()).slice(2)).join("&nbsp;&nbsp;·&nbsp;&nbsp;")}</th><th></th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="5" class="empty">Sem etapas.</td></tr>'}</tbody>
+      </table></div>
+    </div>`;
+};
+
+/* --- Cadastros --- */
+let CAD_TAB="funcionarios";
+const CAD_TABS=[
+  ["funcionarios","Funcionários"],["motoristas","Motoristas"],["veiculos","Veículos"],
+  ["clientes","Clientes"],["fornecedores","Fornecedores"],["rotas","Rotas"],["filiais","Filiais / CDs"]
+];
+ROUTES.cadastros=function(){
+  const tabs=CAD_TABS.map(([k,l])=>`<button class="btn sm ${CAD_TAB===k?"primary":""}" onclick="setCadTab('${k}')">${l}</button>`).join(" ");
+  const subt={funcionarios:"Equipe administrativa e operacional",motoristas:"Condutores e vínculo com veículos",veiculos:"Frota, tipo e quilometragem",clientes:"Carteira de clientes",fornecedores:"Combustível, peças e serviços",rotas:"Trajetos operacionais",filiais:"Unidades e centros de distribuição"}[CAD_TAB];
+  document.getElementById("view").innerHTML=`
+    <div class="pagehead"><div class="t"><h2>Cadastros</h2><p>${subt}</p></div>
+      <div class="spacer"></div><button class="btn primary" onclick='openForm("${CAD_TAB}")'>+ Adicionar</button></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">${tabs}</div>
+    ${renderTable(CAD_TAB,DB[ENTITIES[CAD_TAB].store])}`;
+};
+function setCadTab(k){CAD_TAB=k;router();}
+
+/* --- Controle de Acesso --- */
+ROUTES.acessos=function(){
+  const pagesLabels={dashboard:"Dashboard",visao:"Visão Geral",resp:"Responsabilidades",org:"Organograma",integrantes:"Integrantes",financeiro:"Orçamentária",kpi:"Indicadores",roadmap:"Roadmap",cadastros:"Cadastros",acessos:"Acessos",modelo:"Modelo"};
+  const allPages=Object.keys(pagesLabels);
+  const matrixRows=NIVEIS.map(n=>{
+    const perms=PERMISSIONS[n]||[];
+    return `<tr><td><span class="badge-lvl">${n}</span></td>${allPages.map(p=>`<td style="text-align:center">${perms.includes(p)?'<span style="color:var(--green)">●</span>':'<span style="color:var(--line)">—</span>'}</td>`).join("")}</tr>`;
+  }).join("");
+  document.getElementById("view").innerHTML=`
+    <div class="pagehead"><div class="t"><h2>Controle de Acesso</h2><p>Usuários, níveis e permissões por tela</p></div>
+      <div class="spacer"></div><button class="btn primary" onclick='openForm("usuarios")'>+ Usuário</button></div>
+    <h3 class="sec" style="margin:0 0 10px">Usuários do sistema</h3>
+    ${renderTable("usuarios",DB.usuarios)}
+    <h3 class="sec" style="margin:24px 0 10px">Matriz de permissões</h3>
+    <div class="card tablewrap"><table class="data"><thead><tr><th>Nível</th>${allPages.map(p=>`<th style="text-align:center">${pagesLabels[p]}</th>`).join("")}</tr></thead>
+      <tbody>${matrixRows}</tbody></table></div>
+    <div class="help">Cada usuário enxerga apenas as telas liberadas para o seu nível. Troque o nível no topo da tela para visualizar o sistema como cada perfil.</div>`;
+};
+
+/* --- Modelo de dados --- */
+ROUTES.modelo=function(){
+  const tabelas=[
+    ["usuarios","id, nome, email, nivel, status"],
+    ["permissoes","id, nivel, tela, pode_ver, pode_editar"],
+    ["veiculos","id, placa, modelo, tipo, ano, km, status"],
+    ["motoristas","id, nome, cnh, categoria, telefone, veiculo_id, status"],
+    ["clientes","id, nome, documento, contato, cidade, status"],
+    ["fornecedores","id, nome, categoria, contato, cidade, status"],
+    ["viagens","id, rota_id, motorista_id, veiculo_id, cliente_id, inicio, fim, status"],
+    ["fretes","id, viagem_id, valor, peso, tipo_carga, situacao"],
+    ["ocorrencias","id, viagem_id, tipo, descricao, data, resolvida"],
+    ["manutencoes","id, veiculo_id, tipo, custo, data, oficina, status"],
+    ["abastecimentos","id, veiculo_id, litros, valor, km, data, posto"],
+    ["indicadores","id, nome, meta, atual, unidade, periodo"],
+    ["financeiro","id, tipo, categoria, valor, data, documento, situacao"],
+    ["auditoria","id, usuario_id, acao, entidade, data, ip"]
+  ];
+  document.getElementById("view").innerHTML=`
+    <div class="pagehead"><div class="t"><h2>Modelo de Dados</h2><p>Estrutura relacional prevista para o back-end (Fase 2)</p></div></div>
+    <div class="card tablewrap"><table class="data"><thead><tr><th>Tabela</th><th>Campos principais</th></tr></thead>
+    <tbody>${tabelas.map(([t,c])=>`<tr><td><b>${t}</b></td><td style="font-family:monospace;font-size:12px;color:var(--muted)">${c}</td></tr>`).join("")}</tbody></table></div>
+    <div class="help"><b>Fase 2 (back-end):</b> API REST + banco relacional (PostgreSQL/MySQL) + autenticação JWT. Esta tela documenta o esquema; o front-end atual já está organizado por essas entidades e pode ser conectado à API trocando apenas a camada de dados (hoje em localStorage).</div>`;
+};
+
+/* ---------- Role switch ---------- */
+function changeRole(r){ CURRENT_ROLE=r; document.getElementById("uRole").textContent=r; document.getElementById("avatar").textContent=r.slice(0,2).toUpperCase();
+  document.getElementById("uName").textContent=r==="Administrador"?"Miquéias":r; renderNav(); go("dashboard"); router(); }
+function buildRoleSelect(){ document.getElementById("roleSel").innerHTML=NIVEIS.map(n=>`<option ${n===CURRENT_ROLE?"selected":""}>${n}</option>`).join(""); }
+
+/* ---------- Sidebar mobile ---------- */
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("open");
+  let b=document.querySelector(".backdrop"); if(document.getElementById("sidebar").classList.contains("open")){ if(!b){b=document.createElement("div");b.className="backdrop";b.onclick=closeSidebar;document.body.appendChild(b);} } else closeSidebar(); }
+function closeSidebar(){document.getElementById("sidebar").classList.remove("open");const b=document.querySelector(".backdrop");if(b)b.remove();}
+
+/* ---------- Init ---------- */
+buildRoleSelect(); renderNav();
+if(!location.hash) location.hash="dashboard";
+router();
+</script>
+</body>
+</html>
