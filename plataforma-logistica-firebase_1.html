@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0B2A4A">
+<title>Plataforma Logística — Gestão Operacional</title>
+<style>
+:root{
+  --navy:#0B2A4A; --navy2:#12385f; --navy3:#1b4a78;
+  --accent:#00A9C7; --bg:#f4f6f9; --card:#fff; --line:#e3e8ef; --line2:#eef2f7;
+  --ink:#12222f; --muted:#64748b; --muted2:#94a3b8;
+  --green:#16a34a; --amber:#f59e0b; --red:#dc2626;
+  --green-bg:#e7f6ec; --amber-bg:#fef3e0; --red-bg:#fdeaea;
+  --radius:14px; --shadow:0 1px 2px rgba(16,34,47,.06),0 4px 16px rgba(16,34,47,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:14px}
+a{color:inherit;text-decoration:none}
+.hidden{display:none!important}
+
+/* Login */
+#login{position:fixed;inset:0;background:linear-gradient(135deg,#0B2A4A,#12385f);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+#login .box{background:#fff;border-radius:18px;width:100%;max-width:380px;padding:30px 28px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+#login .logo{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#0067a3);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:20px;margin:0 auto 14px}
+#login h2{margin:0 0 3px;text-align:center;color:var(--navy);font-size:19px}
+#login p{margin:0 0 22px;text-align:center;color:var(--muted);font-size:12.5px}
+#login label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:12px 0 5px}
+#login input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px}
+#login input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,169,199,.12)}
+#login button{width:100%;margin-top:20px;background:var(--navy);color:#fff;border:none;border-radius:10px;padding:12px;font-weight:700;font-size:14px}
+#login button:hover{background:var(--navy2)}
+#login .err{color:var(--red);font-size:12.5px;margin-top:12px;text-align:center;min-height:16px}
+#login .note{font-size:11.5px;color:var(--muted2);text-align:center;margin-top:16px}
+
+/* Layout */
+#app{display:flex;min-height:100vh}
+.sidebar{width:250px;background:var(--navy);color:#cdd8e6;flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:40;transition:transform .22s}
+.brand{display:flex;align-items:center;gap:10px;padding:18px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand .logo{width:40px;height:40px;border-radius:9px;background:linear-gradient(135deg,var(--accent),#0067a3);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:16px;flex-shrink:0}
+.brand b{color:#fff;font-size:15px;line-height:1.15;display:block}
+.brand span{font-size:10.5px;color:var(--accent);letter-spacing:1.5px;font-weight:700}
+.nav{flex:1;overflow-y:auto;padding:10px 10px 20px}
+.nav .group{font-size:10.5px;letter-spacing:1.2px;color:#5f7897;text-transform:uppercase;padding:14px 12px 6px;font-weight:700}
+.nav a{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:9px;font-size:13.5px;color:#b9c7d9;margin-bottom:1px}
+.nav a .ic{width:20px;text-align:center;font-size:15px;opacity:.9}
+.nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav a.active{background:linear-gradient(90deg,rgba(0,169,199,.22),rgba(0,169,199,.05));color:#fff;box-shadow:inset 3px 0 0 var(--accent)}
+.main{flex:1;margin-left:250px;min-width:0;display:flex;flex-direction:column}
+.topbar{height:60px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 22px;position:sticky;top:0;z-index:30}
+.topbar .menu-btn{display:none;background:none;border:none;font-size:22px;color:var(--navy)}
+.topbar h1{font-size:16px;margin:0;font-weight:700;color:var(--navy)}
+.topbar .spacer{flex:1}
+.userchip{display:flex;align-items:center;gap:9px;padding:5px 6px 5px 10px;border:1px solid var(--line);border-radius:30px}
+.userchip .av{width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+.userchip small{display:block;color:var(--muted);font-size:11px;line-height:1}
+.content{padding:24px 26px 60px;max-width:1320px;width:100%}
+
+.pagehead{display:flex;align-items:flex-end;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.pagehead .t h2{margin:0;font-size:21px;color:var(--navy)}
+.pagehead .t p{margin:3px 0 0;color:var(--muted);font-size:13px}
+.pagehead .spacer{flex:1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-pad{padding:18px 20px}
+.card h3.sec{margin:0 0 2px;font-size:15px;color:var(--navy)}
+.card .seclabel{font-size:11.5px;color:var(--muted);margin:0 0 14px}
+.grid{display:grid;gap:16px}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 14px;border-radius:9px;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:7px}
+.btn:hover{border-color:var(--navy3)}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+.btn.primary:hover{background:var(--navy2)}
+.btn.sm{padding:6px 10px;font-size:12px;border-radius:8px}
+.iconbtn{border:none;background:none;color:var(--muted);font-size:15px;padding:5px 7px;border-radius:7px}
+.iconbtn:hover{background:var(--line2);color:var(--navy)}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.stat .lbl{font-size:12px;color:var(--muted);font-weight:600}
+.stat .val{font-size:30px;font-weight:800;color:var(--navy);margin-top:8px;letter-spacing:-1px}
+.stat .foot{font-size:11.5px;color:var(--muted2);margin-top:4px}
+.stat .ic{position:absolute;right:14px;top:14px;width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--line2)}
+.stat.warn .val{color:var(--amber)} .stat.alert .val{color:var(--red)}
+
+.tablewrap{overflow-x:auto;border-radius:var(--radius)}
+table.data{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+table.data th{background:var(--navy);color:#dfe9f3;text-align:left;padding:11px 13px;font-weight:600;font-size:12px;white-space:nowrap}
+table.data td{padding:11px 13px;border-bottom:1px solid var(--line2);vertical-align:middle}
+table.data tr:hover td{background:#fafcff}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:30px;font-size:11.5px;font-weight:700}
+.tag.g{background:var(--green-bg);color:var(--green)} .tag.a{background:var(--amber-bg);color:#b45309}
+.tag.r{background:var(--red-bg);color:var(--red)} .tag.n{background:#eef2f7;color:var(--muted)}
+.prio-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.filters input,.filters select{border:1px solid var(--line);border-radius:9px;padding:8px 11px;background:#fff;min-width:150px}
+
+.overlay{position:fixed;inset:0;background:rgba(11,42,74,.42);z-index:80;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:560px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal header{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center}
+.modal header h3{margin:0;font-size:16px;color:var(--navy)}
+.modal header .x{margin-left:auto;background:none;border:none;font-size:20px;color:var(--muted)}
+.modal .body{padding:20px 22px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.modal .body .full{grid-column:1/-1}
+.modal footer{padding:16px 22px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,169,199,.12)}
+.field textarea{resize:vertical;min-height:64px}
+
+.org{display:flex;flex-direction:column;align-items:center;padding:8px 0}
+.org .lvl{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;position:relative;padding:14px 0}
+.org .lvl:not(:last-child):after{content:"";width:2px;height:14px;background:var(--line);position:absolute;bottom:-1px;left:50%}
+.orgnode{background:#fff;border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:11px;padding:11px 15px;min-width:180px;box-shadow:var(--shadow);text-align:center}
+.orgnode .cargo{font-size:10.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);font-weight:700}
+.orgnode .nome{font-weight:700;color:var(--navy);margin-top:2px}
+.orgnode .meta{font-size:11px;color:var(--muted);margin-top:3px}
+
+.kpigrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
+.kpi .name{font-weight:700;color:var(--navy);font-size:13.5px}
+.kpi .nums{display:flex;align-items:baseline;gap:8px;margin:10px 0 4px}
+.kpi .nums b{font-size:26px;letter-spacing:-1px}
+.kpi .nums small{color:var(--muted);font-size:12px}
+.kpi .bar{height:8px;border-radius:6px;background:var(--line2);overflow:hidden;margin-top:8px}
+.kpi .bar i{display:block;height:100%;border-radius:6px}
+.kpi .foot{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:7px}
+
+.gantt{overflow-x:auto}
+.gantt table{border-collapse:collapse;width:100%;min-width:760px}
+.gantt th,.gantt td{border-bottom:1px solid var(--line2);padding:8px 10px;font-size:12.5px}
+.gantt th{background:var(--navy);color:#dfe9f3;font-weight:600;font-size:11.5px;text-align:center}
+.gantt th.left,.gantt td.left{text-align:left}
+.gantt .track{position:relative;height:22px}
+.gantt .barx{position:absolute;height:16px;top:3px;border-radius:5px;background:linear-gradient(90deg,var(--navy3),var(--accent));display:flex;align-items:center;padding-left:7px;color:#fff;font-size:10.5px;font-weight:700}
+.gantt .barx.done{background:linear-gradient(90deg,#15803d,var(--green))}
+.gantt .barx.late{background:linear-gradient(90deg,#b91c1c,var(--red))}
+
+.chartcard{padding:18px 20px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.vg-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+.infoline{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line2)}
+.infoline:last-child{border:none}
+.infoline .k{width:130px;flex-shrink:0;font-weight:700;color:var(--muted);font-size:12px}
+.infoline .v{flex:1}
+.flow{display:flex;margin-top:14px;flex-wrap:wrap}
+.flow .step{background:var(--navy2);color:#cfe0f0;padding:10px 16px 10px 22px;font-size:12px;font-weight:600;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%,12px 50%);margin-right:-10px}
+.flow .step:first-child{clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%);padding-left:16px}
+.flow .step.active{background:var(--accent);color:#fff}
+.progresswrap{background:var(--line2);border-radius:30px;height:14px;overflow:hidden;margin-top:8px}
+.progresswrap i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#0067a3);border-radius:30px}
+.badge-lvl{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--navy);color:#fff}
+.help{font-size:12px;color:var(--muted);background:#f0f6fb;border:1px solid #d9e8f4;border-radius:10px;padding:10px 13px;margin-top:14px}
+.banner{background:#fff8e6;border:1px solid #f4dfa0;border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.empty{text-align:center;color:var(--muted);padding:34px}
+.ro-badge{font-size:10.5px;font-weight:700;background:var(--amber-bg);color:#b45309;padding:3px 9px;border-radius:20px}
+
+@media(max-width:960px){.vg-grid{grid-template-columns:1fr}}
+@media(max-width:860px){
+  .sidebar{transform:translateX(-100%)}.sidebar.open{transform:none}
+  .main{margin-left:0}.topbar .menu-btn{display:block}
+  .content{padding:18px 14px 60px}.modal .body{grid-template-columns:1fr}.userchip small{display:none}
+  .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:35}
+}
+@media print{
+  .sidebar,.topbar,.pagehead .btn,.iconbtn,.banner,.filters{display:none!important}
+  .main{margin:0}.content{padding:0;max-width:100%}
+  .card{box-shadow:none;border:1px solid #ccc}
+  body{background:#fff}
+}
+</style>
+
+<!-- ============================================================
+     CONFIGURAÇÃO — cole aqui o config do seu projeto Firebase
+     (o mesmo do projeto de gestão, ex.: interliga-app).
+     Troca de projeto = editar só este bloco.
+     ============================================================ -->
+<script>
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBAfHHpxlYMK7BqLN0RE3vAt6h3QTjqfSM",
+  authDomain: "gestao-lamonica.firebaseapp.com",
+  projectId: "gestao-lamonica",
+  storageBucket: "gestao-lamonica.firebasestorage.app",
+  messagingSenderId: "425714625924",
+  appId: "1:425714625924:web:49ced0c3ee7cdedc21c1d1"
+};
+const PREFIX = "lamonica_";                 // isola os dados deste cliente
+const ADMIN_EMAILS = ["admin@lamonica.com"]; // sempre entram como Administrador (bootstrap)
+</script>
+</head>
+<body>
+
+<div id="login">
+  <div class="box">
+    <div class="logo">22</div>
+    <h2>Plataforma Logística</h2>
+    <p>Grupo Lamônica — Gestão Operacional</p>
+    <label>E-mail</label>
+    <input id="lgEmail" type="email" autocomplete="username" placeholder="voce@lamonica.com">
+    <label>Senha</label>
+    <input id="lgPass" type="password" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()" id="lgBtn">Entrar</button>
+    <div class="err" id="lgErr"></div>
+    <div class="note">Acesso liberado pelo administrador. Não há autocadastro.</div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><div class="logo">22</div><div><b>Plataforma Logística</b><span>GESTÃO OPERACIONAL</span></div></div>
+    <nav class="nav" id="nav"></nav>
+    <div style="padding:12px 16px;border-top:1px solid rgba(255,255,255,.08)"><a href="#" onclick="doLogout();return false" style="color:#8fa6c2;font-size:13px">⎋ Sair</a></div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <div><h1 id="pgTitle">Dashboard</h1></div>
+      <div class="spacer"></div>
+      <span id="roBadge" class="ro-badge hidden">somente leitura</span>
+      <button class="btn sm" onclick="window.print()">⎙ Exportar / Imprimir</button>
+      <div class="userchip"><div class="av" id="avatar">--</div><div><b id="uName" style="font-size:13px">—</b><small id="uRole">—</small></div></div>
+    </div>
+    <div class="content" id="view"><div class="empty">Carregando…</div></div>
+  </div>
+</div>
+<div id="modalRoot"></div>
+
+<script>
+/* ============================================================
+   PLATAFORMA LOGÍSTICA — Firestore
+   Data layer em tempo real (onSnapshot), auth, papéis e export.
+   ============================================================ */
+let FB=null, AUTH=null, DBF=null, CURRENT_USER=null, CURRENT_ROLE="";
+const DB={ config:{}, responsabilidades:[], organograma:[], integrantes:[], financeiro:[],
+  kpis:[], roadmap:[], funcionarios:[], motoristas:[], veiculos:[], clientes:[],
+  fornecedores:[], rotas:[], filiais:[], usuarios:[] };
+const COLLECTIONS=["responsabilidades","organograma","integrantes","financeiro","kpis","roadmap",
+  "funcionarios","motoristas","veiculos","clientes","fornecedores","rotas","filiais","usuarios"];
+
+const FIN_CATS=["Fretes","Combustível","Manutenção","Folha de pagamento","Terceiros","Peças","Pneus","Seguro","Licenciamento","Impostos","Investimentos"];
+const NIVEIS=["Administrador","Supervisor","Diretor","Gerente","Operador","Financeiro","RH","Motorista","Cliente"];
+
+/* ---------- helpers ---------- */
+function esc(s){return (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function money(v){return "R$ "+(Number(v)||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fdate(d){if(!d)return "—";const p=String(d).split("-");return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:d;}
+function statusTag(s){const v=(s||"").toLowerCase();
+  if(/conclu|confirm|ativ|realizad/.test(v))return `<span class="tag g">${esc(s)}</span>`;
+  if(/andamento|parcial/.test(v))return `<span class="tag a">${esc(s)}</span>`;
+  if(/pend|atras|parad|inativ|manuten/.test(v))return `<span class="tag r">${esc(s)}</span>`;
+  return `<span class="tag n">${esc(s||"—")}</span>`;}
+function prioTag(p){const c=p==="Alta"?"var(--red)":p==="Média"?"var(--amber)":"var(--green)";return `<span class="prio-dot" style="background:${c}"></span>${esc(p||"—")}`;}
+
+/* ---------- Access control ---------- */
+const PERMISSIONS={
+  Administrador:["dashboard","visao","resp","org","integrantes","financeiro","kpi","roadmap","cadastros","acessos","modelo"],
+  Supervisor:["dashboard","visao","resp","org","integrantes","financeiro","kpi","roadmap","cadastros","acessos","modelo"],
+  Diretor:["dashboard","visao","resp","org","integrantes","financeiro","kpi","roadmap","cadastros"],
+  Gerente:["dashboard","visao","resp","org","integrantes","kpi","roadmap","cadastros"],
+  Operador:["dashboard","integrantes","cadastros"],
+  Financeiro:["dashboard","financeiro","kpi"],
+  RH:["dashboard","org","integrantes","cadastros"],
+  Motorista:["dashboard"], Cliente:["dashboard"]
+};
+function can(p){return (PERMISSIONS[CURRENT_ROLE]||[]).includes(p);}
+function canEdit(){return CURRENT_ROLE==="Administrador"||CURRENT_ROLE==="Supervisor";}
+
+/* ============================================================
+   Firebase init + Auth
+   ============================================================ */
+(async()=>{
+  try{
+    const appMod=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+    const authMod=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+    const fsMod=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const app=appMod.initializeApp(FIREBASE_CONFIG);
+    AUTH=authMod.getAuth(app); DBF=fsMod.getFirestore(app);
+    FB={...authMod,...fsMod};
+    authMod.onAuthStateChanged(AUTH,onAuth);
+  }catch(e){
+    document.getElementById("lgErr").textContent="Falha ao carregar o Firebase. Verifique o config e a conexão.";
+    console.error(e);
+  }
+})();
+
+function doLogin(){
+  const email=document.getElementById("lgEmail").value.trim();
+  const pass=document.getElementById("lgPass").value;
+  const err=document.getElementById("lgErr"); err.textContent="";
+  if(!AUTH){err.textContent="Firebase ainda inicializando, tente em 1s.";return;}
+  document.getElementById("lgBtn").textContent="Entrando…";
+  FB.signInWithEmailAndPassword(AUTH,email,pass)
+    .catch(e=>{err.textContent="E-mail ou senha inválidos."; console.warn(e.code);})
+    .finally(()=>document.getElementById("lgBtn").textContent="Entrar");
+}
+function doLogout(){ if(AUTH) FB.signOut(AUTH); }
+
+async function onAuth(user){
+  if(!user){ // deslogado
+    CURRENT_USER=null; detachListeners();
+    document.getElementById("app").classList.add("hidden");
+    document.getElementById("login").classList.remove("hidden");
+    return;
+  }
+  CURRENT_USER=user;
+  // descobre o nível: e-mail admin (bootstrap) ou doc em lamonica_usuarios
+  CURRENT_ROLE = ADMIN_EMAILS.includes((user.email||"").toLowerCase()) ? "Administrador" : "";
+  try{
+    const q=FB.query(FB.collection(DBF,PREFIX+"usuarios"),FB.where("email","==",user.email));
+    const snap=await FB.getDocs(q);
+    if(!snap.empty){ const u=snap.docs[0].data(); if(u.nivel) CURRENT_ROLE=u.nivel; }
+  }catch(e){console.warn("lookup nivel",e);}
+  if(!CURRENT_ROLE){
+    document.getElementById("lgErr").textContent="Seu usuário não tem nível de acesso liberado. Fale com o administrador.";
+    FB.signOut(AUTH); return;
+  }
+  // entra
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  document.getElementById("uName").textContent = user.email.split("@")[0];
+  document.getElementById("uRole").textContent = CURRENT_ROLE;
+  document.getElementById("avatar").textContent = (user.email||"?").slice(0,2).toUpperCase();
+  document.getElementById("roBadge").classList.toggle("hidden",canEdit());
+  renderNav();
+  if(!location.hash) location.hash="dashboard";
+  attachListeners();
+}
+
+/* ============================================================
+   Real-time listeners → cache DB → re-render
+   ============================================================ */
+let unsub=[];
+function detachListeners(){ unsub.forEach(u=>{try{u()}catch(e){}}); unsub=[]; }
+function attachListeners(){
+  detachListeners();
+  // config (visão geral / empresa / fluxo) — doc único
+  unsub.push(FB.onSnapshot(FB.doc(DBF,PREFIX+"config","geral"),d=>{ DB.config=d.exists()?d.data():{}; safeRender(); }));
+  COLLECTIONS.forEach(c=>{
+    unsub.push(FB.onSnapshot(FB.collection(DBF,PREFIX+c),snap=>{
+      DB[c]=snap.docs.map(d=>({id:d.id,...d.data()})); safeRender();
+    },err=>console.warn("listener",c,err.code)));
+  });
+}
+let rt=null;
+function safeRender(){ if(document.getElementById("modalRoot").innerHTML)return; clearTimeout(rt); rt=setTimeout(router,60); }
+
+/* ============================================================
+   Firestore CRUD
+   ============================================================ */
+async function fsAdd(coll,data){ await FB.addDoc(FB.collection(DBF,PREFIX+coll),data); }
+async function fsUpdate(coll,id,data){ await FB.updateDoc(FB.doc(DBF,PREFIX+coll,id),data); }
+async function fsDelete(coll,id){ await FB.deleteDoc(FB.doc(DBF,PREFIX+coll,id)); }
+async function fsSetConfig(data){ await FB.setDoc(FB.doc(DBF,PREFIX+"config","geral"),data,{merge:true}); }
+
+/* base inicia vazia — sem dados de exemplo (produção) */
+/* ============================================================
+   Menu + Router
+   ============================================================ */
+const MENU=[
+  {g:"Operação"},{k:"dashboard",t:"Dashboard",ic:"◧"},{k:"visao",t:"Visão Geral",ic:"◈"},
+  {k:"resp",t:"Responsabilidades",ic:"☑"},{k:"org",t:"Estrutura Organizacional",ic:"⬡"},{k:"integrantes",t:"Resp. por Integrante",ic:"◔"},
+  {g:"Gestão"},{k:"financeiro",t:"Gestão Orçamentária",ic:"$"},{k:"kpi",t:"Indicadores (KPIs)",ic:"◭"},{k:"roadmap",t:"Roadmap",ic:"◰"},
+  {g:"Estrutura"},{k:"cadastros",t:"Cadastros",ic:"▤"},{k:"acessos",t:"Controle de Acesso",ic:"⚿"},{k:"modelo",t:"Modelo de Dados",ic:"◫"}
+];
+function renderNav(){document.getElementById("nav").innerHTML=MENU.map(m=>{
+  if(m.g)return `<div class="group">${m.g}</div>`;
+  if(!can(m.k))return "";
+  return `<a href="#${m.k}" data-k="${m.k}"><span class="ic">${m.ic}</span>${m.t}</a>`;}).join("");}
+const ROUTES={};
+function go(p){if(!can(p))p="dashboard";location.hash=p;}
+function router(){
+  if(!CURRENT_ROLE)return;
+  let page=location.hash.replace("#","")||"dashboard"; if(!can(page))page="dashboard";
+  document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("active",a.dataset.k===page));
+  const titles={dashboard:"Dashboard",visao:"Visão Geral",resp:"Responsabilidades",org:"Estrutura Organizacional",integrantes:"Responsabilidade por Integrante",financeiro:"Gestão Orçamentária",kpi:"Gestão de Indicadores",roadmap:"Roadmap",cadastros:"Cadastros",acessos:"Controle de Acesso",modelo:"Modelo de Dados"};
+  document.getElementById("pgTitle").textContent=titles[page]||"";
+  (ROUTES[page]||ROUTES.dashboard)();
+  if(window.innerWidth<=860)closeSidebar();
+}
+window.addEventListener("hashchange",router);
+
+/* ============================================================
+   Charts (SVG, offline)
+   ============================================================ */
+function barChart(data,{w=520,h=200,color="#12385f",fmt=x=>x}={}){
+  const pad={l:44,r:12,t:12,b:34},iw=w-pad.l-pad.r,ih=h-pad.t-pad.b,max=Math.max(1,...data.map(d=>d.v)),bw=iw/data.length*.62,gap=iw/data.length;let g="";
+  for(let i=0;i<=4;i++){const y=pad.t+ih-ih*(i/4);g+=`<line x1="${pad.l}" y1="${y}" x2="${w-pad.r}" y2="${y}" stroke="#eef2f7"/><text x="${pad.l-6}" y="${y+4}" text-anchor="end" font-size="10" fill="#94a3b8">${fmt(Math.round(max*i/4))}</text>`;}
+  data.forEach((d,i)=>{const bh=ih*(d.v/max),x=pad.l+gap*i+(gap-bw)/2,y=pad.t+ih-bh;g+=`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="4" fill="${d.color||color}"><title>${esc(d.l)}: ${fmt(d.v)}</title></rect><text x="${x+bw/2}" y="${h-pad.b+16}" text-anchor="middle" font-size="10" fill="#64748b">${esc(d.l)}</text>`;});
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:${w}px">${g}</svg>`;}
+function donut(pct,color){const r=42,c=2*Math.PI*r,off=c*(1-pct/100);
+  return `<svg viewBox="0 0 110 110" width="96" height="96"><circle cx="55" cy="55" r="${r}" fill="none" stroke="#eef2f7" stroke-width="12"/><circle cx="55" cy="55" r="${r}" fill="none" stroke="${color}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}" transform="rotate(-90 55 55)"/><text x="55" y="61" text-anchor="middle" font-size="22" font-weight="800" fill="#0B2A4A">${Math.round(pct)}%</text></svg>`;}
+
+/* ============================================================
+   Entities + generic CRUD
+   ============================================================ */
+const ENTITIES={
+  resp:{coll:"responsabilidades",title:"Responsabilidade",cols:[
+    {k:"departamento",l:"Departamento"},{k:"responsavel",l:"Responsável"},{k:"cargo",l:"Cargo"},{k:"atividade",l:"Atividade",wide:true},
+    {k:"dataInicio",l:"Início",type:"date",fmt:fdate},{k:"status",l:"Status",type:"select",opts:["Pendente","Em andamento","Concluído"],tag:true},{k:"obs",l:"Observações",type:"textarea",hideList:true}]},
+  org:{coll:"organograma",title:"Cargo / Pessoa",cols:[
+    {k:"nome",l:"Nome"},{k:"cargo",l:"Cargo"},{k:"nivel",l:"Nível",type:"select",opts:["Presidência","Diretoria","Gerência","Coordenação","Supervisão","Operação","Motoristas","Auxiliares"]},
+    {k:"setor",l:"Setor"},{k:"telefone",l:"Telefone"},{k:"email",l:"E-mail"},{k:"status",l:"Status",type:"select",opts:["Ativo","Inativo"],tag:true}]},
+  integrantes:{coll:"integrantes",title:"Atividade do Integrante",cols:[
+    {k:"nome",l:"Nome"},{k:"cargo",l:"Cargo"},{k:"departamento",l:"Departamento"},{k:"atividade",l:"Atividade",wide:true},
+    {k:"prazo",l:"Prazo",type:"date",fmt:fdate},{k:"prioridade",l:"Prioridade",type:"select",opts:["Alta","Média","Baixa"],prio:true},
+    {k:"situacao",l:"Situação",type:"select",opts:["Pendente","Em andamento","Concluído"],tag:true},{k:"obs",l:"Observações",type:"textarea",hideList:true}]},
+  funcionarios:{coll:"funcionarios",title:"Funcionário",cols:[{k:"nome",l:"Nome"},{k:"cargo",l:"Cargo"},{k:"setor",l:"Setor"},{k:"telefone",l:"Telefone"},{k:"email",l:"E-mail"},{k:"status",l:"Status",type:"select",opts:["Ativo","Inativo"],tag:true}]},
+  motoristas:{coll:"motoristas",title:"Motorista",cols:[{k:"nome",l:"Nome"},{k:"cnh",l:"CNH"},{k:"categoria",l:"Categoria",type:"select",opts:["A","B","C","D","E"]},{k:"telefone",l:"Telefone"},{k:"veiculo",l:"Veículo"},{k:"status",l:"Status",type:"select",opts:["Ativo","Inativo"],tag:true}]},
+  veiculos:{coll:"veiculos",title:"Veículo",cols:[{k:"placa",l:"Placa"},{k:"modelo",l:"Modelo"},{k:"tipo",l:"Tipo"},{k:"ano",l:"Ano"},{k:"km",l:"KM"},{k:"status",l:"Status",type:"select",opts:["Ativo","Manutenção","Inativo"],tag:true}]},
+  clientes:{coll:"clientes",title:"Cliente",cols:[{k:"nome",l:"Nome / Razão"},{k:"documento",l:"Documento"},{k:"contato",l:"Contato"},{k:"cidade",l:"Cidade"},{k:"status",l:"Status",type:"select",opts:["Ativo","Inativo"],tag:true}]},
+  fornecedores:{coll:"fornecedores",title:"Fornecedor",cols:[{k:"nome",l:"Nome"},{k:"categoria",l:"Categoria"},{k:"contato",l:"Contato"},{k:"cidade",l:"Cidade"},{k:"status",l:"Status",type:"select",opts:["Ativo","Inativo"],tag:true}]},
+  rotas:{coll:"rotas",title:"Rota",cols:[{k:"nome",l:"Rota"},{k:"origem",l:"Origem"},{k:"destino",l:"Destino"},{k:"distancia",l:"Distância"},{k:"tempo",l:"Tempo"},{k:"status",l:"Status",type:"select",opts:["Ativa","Inativa"],tag:true}]},
+  filiais:{coll:"filiais",title:"Filial / CD",cols:[{k:"nome",l:"Nome"},{k:"tipo",l:"Tipo",type:"select",opts:["Matriz","Filial","Centro de Distribuição"]},{k:"cidade",l:"Cidade"},{k:"responsavel",l:"Responsável"},{k:"status",l:"Status",type:"select",opts:["Ativa","Inativa"],tag:true}]},
+  usuarios:{coll:"usuarios",title:"Usuário",cols:[{k:"nome",l:"Nome"},{k:"email",l:"E-mail"},{k:"nivel",l:"Nível de acesso",type:"select",opts:NIVEIS},{k:"status",l:"Status",type:"select",opts:["Ativo","Inativo"],tag:true}]},
+  kpi:{coll:"kpis",title:"Indicador",cols:[{k:"nome",l:"Indicador"},{k:"meta",l:"Meta",type:"number"},{k:"atual",l:"Resultado atual",type:"number"},{k:"unidade",l:"Unidade"},{k:"maiorMelhor",l:"Direção",type:"select",opts:["true","false"],optLabels:{true:"Maior é melhor",false:"Menor é melhor"}}]},
+  roadmap:{coll:"roadmap",title:"Etapa do Roadmap",cols:[{k:"nome",l:"Etapa"},{k:"responsavel",l:"Responsável"},{k:"inicio",l:"Início",type:"date",fmt:fdate},{k:"fim",l:"Fim",type:"date",fmt:fdate},{k:"status",l:"Status",type:"select",opts:["Pendente","Em andamento","Concluído"],tag:true},{k:"percentual",l:"% Concluído",type:"number"},{k:"dependencia",l:"Dependência"}]},
+  financeiro:{coll:"financeiro",title:"Lançamento",cols:[{k:"tipo",l:"Tipo",type:"select",opts:["Receita","Despesa"],tag:true},{k:"categoria",l:"Categoria",type:"select",opts:FIN_CATS},{k:"data",l:"Data",type:"date",fmt:fdate},{k:"valor",l:"Valor",type:"number",fmt:money},{k:"responsavel",l:"Responsável"},{k:"documento",l:"Documento"},{k:"situacao",l:"Situação",type:"select",opts:["Confirmado","Pendente"],tag:true}]}
+};
+let modalState=null;
+function openForm(entKey,record){
+  if(!canEdit())return;
+  const E=ENTITIES[entKey];modalState={entKey,editing:record?record.id:null};const rec=record||{};
+  const fields=E.cols.map(c=>{const val=rec[c.k]!==undefined?rec[c.k]:"";const wide=c.type==="textarea"||c.wide?' full':'';let input;
+    if(c.type==="select"){input=`<select data-f="${c.k}"><option value="">—</option>${(c.opts||[]).map(o=>`<option value="${esc(o)}" ${String(val)===String(o)?"selected":""}>${esc(c.optLabels?c.optLabels[o]:o)}</option>`).join("")}</select>`;}
+    else if(c.type==="textarea"){input=`<textarea data-f="${c.k}">${esc(val)}</textarea>`;}
+    else{const t=c.type==="number"?"number":c.type==="date"?"date":"text";input=`<input type="${t}" data-f="${c.k}" value="${esc(val)}" ${c.type==="number"?'step="any"':''}>`;}
+    return `<div class="field${wide}"><label>${c.l}</label>${input}</div>`;}).join("");
+  document.getElementById("modalRoot").innerHTML=`<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal">
+    <header><h3>${record?"Editar":"Novo"} — ${E.title}</h3><button class="x" onclick="closeModal()">✕</button></header>
+    <div class="body">${fields}</div>
+    <footer><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" id="saveBtn" onclick="saveForm()">Salvar</button></footer></div></div>`;
+}
+async function saveForm(){
+  const E=ENTITIES[modalState.entKey];const rec={};
+  document.querySelectorAll("#modalRoot [data-f]").forEach(el=>{const k=el.dataset.f;const col=E.cols.find(c=>c.k===k);let v=el.value;
+    if(col&&col.type==="number")v=v===""?0:Number(v); if(k==="maiorMelhor")v=(v==="true"); rec[k]=v;});
+  document.getElementById("saveBtn").textContent="Salvando…";
+  try{ if(modalState.editing)await fsUpdate(E.coll,modalState.editing,rec); else await fsAdd(E.coll,rec); closeModal(); }
+  catch(e){alert("Erro ao salvar: "+e.message); document.getElementById("saveBtn").textContent="Salvar";}
+}
+async function delRecord(entKey,rid){ if(!canEdit())return; if(!confirm("Excluir este registro?"))return;
+  try{await fsDelete(ENTITIES[entKey].coll,rid);}catch(e){alert("Erro ao excluir: "+e.message);} }
+function closeModal(){document.getElementById("modalRoot").innerHTML="";modalState=null;router();}
+
+function actionsCell(entKey,r){ if(!canEdit())return ""; return `<td style="white-space:nowrap">
+  <button class="iconbtn" title="Editar" onclick='openForm("${entKey}",${JSON.stringify(r).replace(/'/g,"&#39;")})'>✎</button>
+  <button class="iconbtn" title="Excluir" onclick="delRecord('${entKey}','${r.id}')">🗑</button></td>`;}
+function renderTable(entKey,list){
+  const E=ENTITIES[entKey];const cols=E.cols.filter(c=>!c.hideList);
+  if(!list.length)return `<div class="card"><div class="empty">Nenhum registro.${canEdit()?' Clique em “Adicionar”.':''}</div></div>`;
+  const head=cols.map(c=>`<th>${c.l}</th>`).join("")+(canEdit()?"<th>Ações</th>":"");
+  const rows=list.map(r=>{const tds=cols.map(c=>{let v=r[c.k];
+      if(c.k==="maiorMelhor")v=v?"Maior é melhor":"Menor é melhor";
+      else if(c.tag)return `<td>${statusTag(v)}</td>`; else if(c.prio)return `<td>${prioTag(v)}</td>`; else if(c.fmt)v=c.fmt(v);
+      return `<td>${esc(v==null||v===""?"—":v)}</td>`;}).join("");
+    return `<tr>${tds}${actionsCell(entKey,r)}</tr>`;}).join("");
+  return `<div class="card tablewrap"><table class="data"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+function addBtn(entKey,label){ return canEdit()?`<button class="btn primary" onclick='openForm("${entKey}")'>+ ${label||"Adicionar"}</button>`:""; }
+function emptyDbBanner(){ return ""; }
+
+/* ============================================================
+   PAGES (idênticas à versão anterior, lendo do cache DB)
+   ============================================================ */
+function kpiPct(k){ if(k.maiorMelhor)return Math.min(100,Math.round((k.atual/(k.meta||1))*100)); if(k.atual<=k.meta)return 100; return Math.max(0,Math.round((k.meta/(k.atual||1))*100)); }
+function kpiColor(k){const p=kpiPct(k);return p>=95?"green":p>=75?"amber":"red";}
+
+ROUTES.dashboard=function(){
+  const cfg=DB.config||{};const emp=cfg.empresa||{nome:"Plataforma Logística",cidade:""};
+  const viagens=DB.kpis.find(k=>/viagens/i.test(k.nome));
+  const veic=DB.veiculos.filter(v=>v.status==="Ativo").length;
+  const mot=DB.motoristas.filter(m=>m.status==="Ativo").length;
+  const emAnd=DB.roadmap.filter(r=>r.status==="Em andamento").length;
+  const pend=DB.integrantes.filter(i=>i.situacao==="Pendente").length+DB.financeiro.filter(f=>f.situacao==="Pendente").length;
+  const alert=DB.veiculos.filter(v=>v.status==="Manutenção").length+DB.kpis.filter(k=>kpiColor(k)==="red").length;
+  const rec=DB.financeiro.filter(f=>f.tipo==="Receita").reduce((a,b)=>a+Number(b.valor||0),0);
+  const desp=DB.financeiro.filter(f=>f.tipo==="Despesa").reduce((a,b)=>a+Number(b.valor||0),0);
+  const stat=(l,v,f,ic,cls="")=>`<div class="stat ${cls}"><div class="ic">${ic}</div><div class="lbl">${l}</div><div class="val">${v}</div><div class="foot">${f}</div></div>`;
+  const catMap={};DB.financeiro.filter(f=>f.tipo==="Despesa").forEach(f=>catMap[f.categoria]=(catMap[f.categoria]||0)+Number(f.valor||0));
+  const cd=Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([l,v])=>({l:l.split(" ")[0],v}));
+  document.getElementById("view").innerHTML=`
+    ${emptyDbBanner()}
+    <div class="pagehead"><div class="t"><h2>${esc(emp.nome)}</h2><p>Resumo operacional${emp.cidade?" • "+esc(emp.cidade):""}</p></div></div>
+    <div class="stats">
+      ${stat("Viagens do ciclo",viagens?viagens.atual:0,"Meta: "+(viagens?viagens.meta:0),"◱")}
+      ${stat("Veículos ativos",veic,DB.veiculos.length+" na frota","🚚")}
+      ${stat("Motoristas ativos",mot,"Cadastrados: "+DB.motoristas.length,"◉")}
+      ${stat("Entregas em andamento",emAnd,"Etapas do roadmap","◔")}
+      ${stat("Pendências",pend,"Atividades + financeiro","⚑","warn")}
+      ${stat("Alertas",alert,"Frota + KPIs críticos","▲","alert")}
+    </div>
+    <div class="grid" style="grid-template-columns:1.5fr 1fr;margin-top:16px">
+      <div class="card chartcard"><h3 class="sec">Despesas por categoria</h3><p class="seclabel">Ciclo atual — R$</p>
+        ${cd.length?barChart(cd,{fmt:v=>(v/1000).toFixed(0)+"k"}):'<div class="empty">Sem lançamentos.</div>'}</div>
+      <div class="card card-pad"><h3 class="sec">Resultado financeiro</h3><p class="seclabel">Ciclo atual</p>
+        <div class="infoline"><div class="k">Receitas</div><div class="v" style="color:var(--green);font-weight:700">${money(rec)}</div></div>
+        <div class="infoline"><div class="k">Despesas</div><div class="v" style="color:var(--red);font-weight:700">${money(desp)}</div></div>
+        <div class="infoline"><div class="k">Saldo</div><div class="v" style="font-weight:800;color:var(--navy)">${money(rec-desp)}</div></div>
+        <div class="help">Implantação Fase 1: ${cfg.percentConcluido||0}% concluída.</div></div>
+    </div>`;
+};
+
+ROUTES.visao=function(){
+  const v=DB.config||{};const line=(k,val)=>`<div class="infoline"><div class="k">${k}</div><div class="v">${esc(val)||"—"}</div></div>`;
+  const flow=(v.fluxo||[]).map((f,i)=>`<div class="step ${i===v.fluxoAtivo?"active":""}">${esc(f)}</div>`).join("");
+  const pc=v.percentConcluido||0;
+  document.getElementById("view").innerHTML=`
+    ${emptyDbBanner()}
+    <div class="pagehead"><div class="t"><h2>Visão Geral</h2><p>Escopo, propósito e interfaces da plataforma</p></div><div class="spacer"></div>${canEdit()?'<button class="btn primary" onclick="editVisao()">✎ Editar</button>':''}</div>
+    <div class="vg-grid">
+      <div class="card card-pad"><h3 class="sec">O que fazemos</h3><p class="seclabel">Objetivo e escopo da operação</p>
+        ${line("Objetivo",v.objetivo)}${line("Escopo",v.escopo)}${line("Metas",v.metas)}${line("Responsáveis",v.responsaveis)}${line("Cronograma",v.cronograma)}
+        <div style="margin-top:16px"><b style="color:var(--navy);font-size:13px">Fluxo macro da área</b><div class="flow">${flow}</div></div></div>
+      <div class="card card-pad"><h3 class="sec">Situação da implantação</h3><p class="seclabel">Percentual concluído (Fase 1)</p>
+        <div style="text-align:center;margin:12px 0">${donut(pc,"#00A9C7")}</div><div class="progresswrap"><i style="width:${pc}%"></i></div>
+        <div class="infoline" style="margin-top:16px"><div class="k">Etapas ativas</div><div class="v">${DB.roadmap.filter(r=>r.status==="Em andamento").length}</div></div>
+        <div class="infoline"><div class="k">Concluídas</div><div class="v">${DB.roadmap.filter(r=>r.status==="Concluído").length}</div></div>
+        <div class="infoline"><div class="k">Pendentes</div><div class="v">${DB.roadmap.filter(r=>r.status==="Pendente").length}</div></div></div>
+    </div>`;
+};
+function editVisao(){const v=DB.config||{};
+  const f=(l,k,ta)=>ta?`<div class="field full"><label>${l}</label><textarea data-v="${k}">${esc(v[k]||"")}</textarea></div>`:`<div class="field full"><label>${l}</label><input data-v="${k}" value="${esc(v[k]||"")}"></div>`;
+  document.getElementById("modalRoot").innerHTML=`<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal">
+    <header><h3>Editar Visão Geral</h3><button class="x" onclick="closeModal()">✕</button></header>
+    <div class="body">${f("Objetivo","objetivo",true)}${f("Escopo","escopo",true)}${f("Metas","metas",true)}${f("Responsáveis","responsaveis")}${f("Cronograma","cronograma")}
+      <div class="field full"><label>% concluído</label><input type="number" min="0" max="100" data-v="percentConcluido" value="${v.percentConcluido||0}"></div></div>
+    <footer><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" id="saveBtn" onclick="saveVisao()">Salvar</button></footer></div></div>`;
+}
+async function saveVisao(){const data={};document.querySelectorAll("#modalRoot [data-v]").forEach(el=>{const k=el.dataset.v;data[k]=k==="percentConcluido"?Number(el.value):el.value;});
+  document.getElementById("saveBtn").textContent="Salvando…"; try{await fsSetConfig(data);closeModal();}catch(e){alert("Erro: "+e.message);} }
+
+function crudPage(entKey,subtitle,filterCfg){
+  const E=ENTITIES[entKey];let list=[...DB[E.coll]];const state=window["__flt_"+entKey]||{};
+  (filterCfg||[]).forEach(fc=>{if(state[fc.k])list=list.filter(r=>String(r[fc.k]||"")===state[fc.k]);});
+  if(state.__q){const q=state.__q.toLowerCase();list=list.filter(r=>Object.values(r).some(x=>String(x).toLowerCase().includes(q)));}
+  let filtersHtml="";
+  if(filterCfg){filtersHtml=`<div class="filters"><input placeholder="Buscar..." oninput="setFlt('${entKey}','__q',this.value)" value="${esc(state.__q||"")}">
+    ${filterCfg.map(fc=>{const opts=[...new Set(DB[E.coll].map(r=>r[fc.k]).filter(Boolean))];
+      return `<select onchange="setFlt('${entKey}','${fc.k}',this.value)"><option value="">${fc.l}: todos</option>${opts.map(o=>`<option ${state[fc.k]===o?"selected":""}>${esc(o)}</option>`).join("")}</select>`;}).join("")}</div>`;}
+  const titles={resp:"Responsabilidades",integrantes:"Responsabilidade por Integrante"};
+  document.getElementById("view").innerHTML=`${emptyDbBanner()}
+    <div class="pagehead"><div class="t"><h2>${titles[entKey]||E.title}</h2><p>${subtitle}</p></div><div class="spacer"></div>${addBtn(entKey)}</div>
+    ${filtersHtml}${renderTable(entKey,list)}`;
+}
+function setFlt(entKey,k,v){window["__flt_"+entKey]=window["__flt_"+entKey]||{};window["__flt_"+entKey][k]=v;router();}
+ROUTES.resp=()=>crudPage("resp","Frentes de atuação e entregas recorrentes da área");
+ROUTES.integrantes=()=>crudPage("integrantes","O que cada integrante faz",[{k:"departamento",l:"Depto"},{k:"cargo",l:"Cargo"},{k:"nome",l:"Responsável"},{k:"situacao",l:"Status"}]);
+
+ROUTES.org=function(){
+  const niveis=["Presidência","Diretoria","Gerência","Coordenação","Supervisão","Operação","Motoristas","Auxiliares"];
+  const byLvl={};DB.organograma.forEach(p=>{(byLvl[p.nivel]=byLvl[p.nivel]||[]).push(p);});
+  const chart=niveis.filter(n=>byLvl[n]).map(n=>`<div class="lvl">${byLvl[n].map(p=>`<div class="orgnode"><div class="cargo">${esc(p.nivel)}</div><div class="nome">${esc(p.nome)}</div><div class="meta">${esc(p.cargo)} • ${esc(p.setor)}</div><div class="meta">${esc(p.telefone)} ${p.email&&p.email!=="—"?"• "+esc(p.email):""}</div></div>`).join("")}</div>`).join("");
+  document.getElementById("view").innerHTML=`${emptyDbBanner()}
+    <div class="pagehead"><div class="t"><h2>Estrutura Organizacional</h2><p>Organograma da área e alocação da equipe</p></div><div class="spacer"></div>${addBtn("org","Adicionar cargo")}</div>
+    <div class="card card-pad"><div class="org">${chart||'<div class="empty">Sem cargos cadastrados.</div>'}</div></div>
+    <h3 class="sec" style="margin:22px 0 10px">Tabela de cargos</h3>${renderTable("org",DB.organograma)}`;
+};
+
+ROUTES.financeiro=function(){
+  const list=[...DB.financeiro];const rec=list.filter(f=>f.tipo==="Receita").reduce((a,b)=>a+Number(b.valor||0),0);
+  const desp=list.filter(f=>f.tipo==="Despesa").reduce((a,b)=>a+Number(b.valor||0),0);
+  const catMap={};list.filter(f=>f.tipo==="Despesa").forEach(f=>catMap[f.categoria]=(catMap[f.categoria]||0)+Number(f.valor||0));
+  const bars=Object.entries(catMap).sort((a,b)=>b[1]-a[1]).map(([l,v])=>({l:l.split(" ")[0],v}));
+  const stat=(l,v,c)=>`<div class="stat"><div class="lbl">${l}</div><div class="val" style="color:${c};font-size:24px">${money(v)}</div></div>`;
+  document.getElementById("view").innerHTML=`${emptyDbBanner()}
+    <div class="pagehead"><div class="t"><h2>Gestão Orçamentária</h2><p>Execução do orçamento, custos e resultados</p></div><div class="spacer"></div>${addBtn("financeiro","Lançamento")}</div>
+    <div class="stats" style="margin-bottom:16px">${stat("Receitas",rec,"var(--green)")}${stat("Despesas",desp,"var(--red)")}${stat("Saldo",rec-desp,"var(--navy)")}
+      <div class="stat"><div class="lbl">Lançamentos</div><div class="val">${list.length}</div><div class="foot">${list.filter(f=>f.situacao==="Pendente").length} pendentes</div></div></div>
+    <div class="card chartcard" style="margin-bottom:16px"><h3 class="sec">Despesas por categoria (centro de custos)</h3><p class="seclabel">Comparativo do ciclo</p>
+      ${bars.length?barChart(bars,{w:760,fmt:v=>(v/1000).toFixed(1)+"k"}):'<div class="empty">Sem despesas lançadas.</div>'}</div>
+    ${renderTable("financeiro",list)}`;
+};
+
+ROUTES.kpi=function(){
+  const cmap={green:"var(--green)",amber:"var(--amber)",red:"var(--red)"};
+  const cards=DB.kpis.map(k=>{const p=kpiPct(k),col=cmap[kpiColor(k)],u=k.unidade&&k.unidade!=="R$"?" "+k.unidade:"";
+    const av=(k.unidade==="R$"?"R$ ":"")+Number(k.atual).toLocaleString("pt-BR")+u, mv=(k.unidade==="R$"?"R$ ":"")+Number(k.meta).toLocaleString("pt-BR")+u;
+    return `<div class="kpi" style="border-top:3px solid ${col}"><div class="name">${esc(k.nome)}</div>
+      <div class="nums"><b style="color:${col}">${esc(av)}</b><small>meta ${esc(mv)}</small></div>
+      <div class="bar"><i style="width:${p}%;background:${col}"></i></div>
+      <div class="foot"><span>${k.maiorMelhor?"Maior é melhor":"Menor é melhor"}</span><span style="color:${col};font-weight:700">${p}%</span></div>
+      ${canEdit()?`<div style="text-align:right;margin-top:6px"><button class="iconbtn" onclick='openForm("kpi",${JSON.stringify(k).replace(/'/g,"&#39;")})'>✎</button><button class="iconbtn" onclick="delRecord('kpi','${k.id}')">🗑</button></div>`:''}
+    </div>`;}).join("");
+  const g=DB.kpis.filter(k=>kpiColor(k)==="green").length,a=DB.kpis.filter(k=>kpiColor(k)==="amber").length,r=DB.kpis.filter(k=>kpiColor(k)==="red").length,tot=DB.kpis.length||1;
+  document.getElementById("view").innerHTML=`${emptyDbBanner()}
+    <div class="pagehead"><div class="t"><h2>Gestão de Indicadores (KPIs)</h2><p>Metas x resultados — semáforo automático</p></div><div class="spacer"></div>${addBtn("kpi","Indicador")}</div>
+    <div class="card card-pad" style="margin-bottom:16px;display:flex;gap:26px;align-items:center;flex-wrap:wrap">
+      <div><b style="font-size:13px;color:var(--navy)">Semáforo de metas</b><div class="legend" style="margin-top:8px"><span><i style="background:var(--green)"></i>No alvo (${g})</span><span><i style="background:var(--amber)"></i>Atenção (${a})</span><span><i style="background:var(--red)"></i>Crítico (${r})</span></div></div>
+      <div style="flex:1;min-width:180px"><div class="bar" style="height:14px;display:flex;border-radius:8px;overflow:hidden"><i style="width:${g/tot*100}%;background:var(--green)"></i><i style="width:${a/tot*100}%;background:var(--amber)"></i><i style="width:${r/tot*100}%;background:var(--red)"></i></div></div></div>
+    <div class="kpigrid">${cards||'<div class="empty">Sem indicadores.</div>'}</div>`;
+};
+
+ROUTES.roadmap=function(){
+  const items=DB.roadmap;
+  if(!items.length){document.getElementById("view").innerHTML=`${emptyDbBanner()}<div class="pagehead"><div class="t"><h2>Roadmap</h2><p>Cronograma das etapas</p></div><div class="spacer"></div>${addBtn("roadmap","Etapa")}</div><div class="card"><div class="empty">Sem etapas.</div></div>`;return;}
+  const dates=items.flatMap(i=>[i.inicio,i.fim]).filter(Boolean).map(d=>new Date(d));
+  const min=new Date(Math.min(...dates)),max=new Date(Math.max(...dates)),span=Math.max(1,max-min);
+  const months=[];let cur=new Date(min.getFullYear(),min.getMonth(),1);while(cur<=max){months.push(new Date(cur));cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);}
+  const mn=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  const rows=items.map(it=>{const s=new Date(it.inicio),e=new Date(it.fim);const left=((s-min)/span)*100,width=Math.max(3,((e-s)/span)*100);
+    const cls=it.status==="Concluído"?"done":(it.status==="Pendente"&&e<new Date()?"late":"");
+    return `<tr><td class="left" style="min-width:200px"><b>${esc(it.nome)}</b><br><small style="color:var(--muted)">${esc(it.responsavel)} • ${fdate(it.inicio)}→${fdate(it.fim)}</small></td>
+      <td class="left">${statusTag(it.status)}</td><td class="left">${it.percentual}%</td>
+      <td style="width:60%"><div class="track"><div class="barx ${cls}" style="left:${left}%;width:${width}%">${it.percentual}%</div></div></td>
+      ${canEdit()?`<td class="left" style="white-space:nowrap"><button class="iconbtn" onclick='openForm("roadmap",${JSON.stringify(it).replace(/'/g,"&#39;")})'>✎</button><button class="iconbtn" onclick="delRecord('roadmap','${it.id}')">🗑</button></td>`:'<td></td>'}</tr>`;}).join("");
+  document.getElementById("view").innerHTML=`${emptyDbBanner()}
+    <div class="pagehead"><div class="t"><h2>Roadmap</h2><p>Cronograma das etapas do ciclo de implantação</p></div><div class="spacer"></div>${addBtn("roadmap","Etapa")}</div>
+    <div class="card card-pad"><div class="legend" style="margin:0 0 12px"><span><i style="background:var(--navy3)"></i>Em andamento</span><span><i style="background:var(--green)"></i>Concluído</span><span><i style="background:var(--red)"></i>Atrasado</span></div>
+      <div class="gantt"><table><thead><tr><th class="left">Etapa</th><th class="left">Status</th><th class="left">%</th><th>${months.map(m=>mn[m.getMonth()]+"/"+String(m.getFullYear()).slice(2)).join("&nbsp;&nbsp;·&nbsp;&nbsp;")}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+};
+
+let CAD_TAB="funcionarios";
+const CAD_TABS=[["funcionarios","Funcionários"],["motoristas","Motoristas"],["veiculos","Veículos"],["clientes","Clientes"],["fornecedores","Fornecedores"],["rotas","Rotas"],["filiais","Filiais / CDs"]];
+ROUTES.cadastros=function(){
+  const tabs=CAD_TABS.map(([k,l])=>`<button class="btn sm ${CAD_TAB===k?"primary":""}" onclick="setCadTab('${k}')">${l}</button>`).join(" ");
+  const subt={funcionarios:"Equipe administrativa e operacional",motoristas:"Condutores e vínculo com veículos",veiculos:"Frota, tipo e quilometragem",clientes:"Carteira de clientes",fornecedores:"Combustível, peças e serviços",rotas:"Trajetos operacionais",filiais:"Unidades e centros de distribuição"}[CAD_TAB];
+  document.getElementById("view").innerHTML=`${emptyDbBanner()}
+    <div class="pagehead"><div class="t"><h2>Cadastros</h2><p>${subt}</p></div><div class="spacer"></div>${addBtn(CAD_TAB)}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">${tabs}</div>${renderTable(CAD_TAB,DB[ENTITIES[CAD_TAB].coll])}`;
+};
+function setCadTab(k){CAD_TAB=k;router();}
+
+ROUTES.acessos=function(){
+  const pl={dashboard:"Dashboard",visao:"Visão Geral",resp:"Responsab.",org:"Organograma",integrantes:"Integrantes",financeiro:"Orçament.",kpi:"KPIs",roadmap:"Roadmap",cadastros:"Cadastros",acessos:"Acessos",modelo:"Modelo"};
+  const all=Object.keys(pl);
+  const mr=NIVEIS.map(n=>{const perms=PERMISSIONS[n]||[];return `<tr><td><span class="badge-lvl">${n}</span></td>${all.map(p=>`<td style="text-align:center">${perms.includes(p)?'<span style="color:var(--green)">●</span>':'<span style="color:var(--line)">—</span>'}</td>`).join("")}</tr>`;}).join("");
+  document.getElementById("view").innerHTML=`${emptyDbBanner()}
+    <div class="pagehead"><div class="t"><h2>Controle de Acesso</h2><p>Usuários, níveis e permissões por tela</p></div><div class="spacer"></div>${addBtn("usuarios","Usuário")}</div>
+    <h3 class="sec" style="margin:0 0 10px">Usuários do sistema</h3>${renderTable("usuarios",DB.usuarios)}
+    <h3 class="sec" style="margin:24px 0 10px">Matriz de permissões</h3>
+    <div class="card tablewrap"><table class="data"><thead><tr><th>Nível</th>${all.map(p=>`<th style="text-align:center">${pl[p]}</th>`).join("")}</tr></thead><tbody>${mr}</tbody></table></div>
+    <div class="help">O <b>Supervisor</b> tem acesso total (edita tudo). A <b>Diretoria</b> visualiza. Para criar o <b>login</b> de um usuário, use o Firebase Console → Authentication → Add user, e cadastre aqui o mesmo e-mail com o nível. (Criação de login pelo próprio painel entra na próxima etapa.)</div>`;
+};
+
+ROUTES.modelo=function(){
+  const t=[["usuarios","id, nome, email, nivel, status"],["veiculos","id, placa, modelo, tipo, ano, km, status"],["motoristas","id, nome, cnh, categoria, telefone, veiculo, status"],["clientes","id, nome, documento, contato, cidade, status"],["fornecedores","id, nome, categoria, contato, cidade, status"],["viagens","id, rota, motorista, veiculo, cliente, inicio, fim, status"],["fretes","id, viagem, valor, peso, tipo_carga, situacao"],["ocorrencias","id, viagem, tipo, descricao, data, resolvida"],["manutencoes","id, veiculo, tipo, custo, data, status"],["abastecimentos","id, veiculo, litros, valor, km, data, posto"],["financeiro","id, tipo, categoria, valor, data, documento, situacao"],["kpis","id, nome, meta, atual, unidade"]];
+  document.getElementById("view").innerHTML=`
+    <div class="pagehead"><div class="t"><h2>Modelo de Dados</h2><p>Coleções no Firestore (prefixo ${PREFIX})</p></div></div>
+    <div class="card tablewrap"><table class="data"><thead><tr><th>Coleção</th><th>Campos principais</th></tr></thead>
+    <tbody>${t.map(([n,c])=>`<tr><td><b>${PREFIX}${n}</b></td><td style="font-family:monospace;font-size:12px;color:var(--muted)">${c}</td></tr>`).join("")}</tbody></table></div>
+    <div class="help">Cada coleção guarda um documento por registro; as ligações (ex.: uma viagem aponta o id do motorista/veículo) permitem, na próxima etapa, calcular KPIs automaticamente (consumo, custo por viagem) a partir de abastecimentos + viagens.</div>`;
+};
+
+/* ---------- Sidebar mobile ---------- */
+function toggleSidebar(){const s=document.getElementById("sidebar");s.classList.toggle("open");let b=document.querySelector(".backdrop");if(s.classList.contains("open")){if(!b){b=document.createElement("div");b.className="backdrop";b.onclick=closeSidebar;document.body.appendChild(b);}}else closeSidebar();}
+function closeSidebar(){document.getElementById("sidebar").classList.remove("open");const b=document.querySelector(".backdrop");if(b)b.remove();}
+</script>
+</body>
+</html>
